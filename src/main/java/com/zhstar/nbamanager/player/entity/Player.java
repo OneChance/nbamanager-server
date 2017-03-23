@@ -3,9 +3,6 @@ package com.zhstar.nbamanager.player.entity;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.Transient;
-
-import com.zhstar.nbamanager.statistic.entity.StatisticToday;
 
 @Entity
 @Table(name = "player_data")
@@ -17,15 +14,6 @@ public class Player {
 	private String pos;
 	private int sal;
 	
-	@Transient
-	StatisticToday today;
-	
-	public StatisticToday getToday() {
-		return today;
-	}
-	public void setToday(StatisticToday today) {
-		this.today = today;
-	}
 	public Long getId() {
 		return id;
 	}

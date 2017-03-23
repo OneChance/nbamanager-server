@@ -45,7 +45,7 @@ public class MyConfiguration extends WebMvcConfigurerAdapter {
 			    		response.setHeader("Access-Control-Allow-Headers", "Origin, No-Cache, X-Requested-With, If-Modified-Since, Pragma, Last-Modified, Cache-Control, Expires, Content-Type, X-E4M-With");
 			    		response.setHeader("Access-Control-Allow-Credentials", "true");
 			    		response.setHeader("Access-Control-Allow-Origin", "http://localhost:8888");
-			    		response.getWriter().write(JsonTool.toString(new NetMessage(NetMessage.MSG_LOGIN_STATUS_ERROR, NetMessage.DANGER)));
+			    		response.getWriter().write(JsonTool.toString(new NetMessage(NetMessage.STATUS_LOGIN_STATUS_ERROR, NetMessage.DANGER)));
 			    		return false;
 			    	}
 					

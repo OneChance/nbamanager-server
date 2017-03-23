@@ -1,8 +1,11 @@
 package com.zhstar.nbamanager.statistic.service;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import com.zhstar.nbamanager.statistic.entity.StatisticToday;
+import java.util.List;
 
-public interface StatisticRepository extends JpaRepository<StatisticToday, Long> {
-	StatisticToday findByPlayerIdAndGameDate(Long playerId,String gameDate);
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.zhstar.nbamanager.statistic.entity.Statistic;
+
+public interface StatisticRepository extends JpaRepository<Statistic, Long> {
+	Statistic findByPlayerIdAndGameDate(Long playerId,String gameDate);
+	List<Statistic> findTop7ByPlayerIdOrderByGameDateDesc(Long playerId);
 }

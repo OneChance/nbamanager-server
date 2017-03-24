@@ -3,13 +3,13 @@ package com.zhstar.nbamanager.team.controller;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.zhstar.nbamanager.account.entity.Account;
 import com.zhstar.nbamanager.account.service.AccountService;
 import com.zhstar.nbamanager.common.NetMessage;
+import com.zhstar.nbamanager.player.entity.Player;
 import com.zhstar.nbamanager.team.service.TeamService;
 
 
@@ -19,13 +19,13 @@ public class TeamController {
     @RequestMapping("/getTeamInfo/")
     public NetMessage getTeamInfo(HttpServletRequest request, HttpServletResponse response) throws Exception {
     	Account account = accountService.getLoginAccount(request, response);
-    	return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS,teamService.getTeamByUser(account.getId()));
+    	return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS,teamService.getTeamByUser(account.getId(),true));
     }
     
-    @RequestMapping("/signPlayer/{playerId}/")
-    public NetMessage signPlayer(@PathVariable String playerId, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    @RequestMapping("/signPlayer/")
+    public NetMessage signPlayer(@RequestBody Player player, HttpServletRequest request, HttpServletResponse response) throws Exception {
     	Account account = accountService.getLoginAccount(request, response);
-    	return teamService.signPlayer(account.getId(), playerId);
+    	return teamService.signPlayer(account.getId(), player);
     }
 
     @Resource

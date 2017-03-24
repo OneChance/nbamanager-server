@@ -10,6 +10,7 @@ public class Player {
 
 	@Id
 	private Long id;
+	private Long playerId;
 	private String name;
 	private String pos;
 	private int sal;
@@ -38,4 +39,11 @@ public class Player {
 	public void setSal(int sal) {
 		this.sal = sal;
 	}
+	public Long getPlayerId() {
+		return playerId;
+	}
+	public void setPlayerId(Long playerId) {
+		this.playerId = playerId;
+	}
+	
 }

@@ -9,6 +9,11 @@ public class NetMessage {
     
     public static String STATUS_LOGIN_STATUS_ERROR = "login_status_error";
     public static String STATUS_TEAM_FULL = "team_full";
+    public static String STATUS_PLAYER_NOT_EXIST = "player_not_exist";
+    public static String STATUS_C_FULL = "c_full";
+    public static String STATUS_F_FULL = "f_full";
+    public static String STATUS_G_FULL = "g_full";
+    public static String STATUS_NOT_ENOUGH_MONEY = "not_enough_money";
     public static String STATUS_OK = "ok";
 
     private String type;

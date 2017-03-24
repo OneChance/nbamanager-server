@@ -3,16 +3,16 @@ package com.zhstar.nbamanager.team.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.Transient;
-
-import com.zhstar.nbamanager.player.entity.Player;
 
 
 @Entity
@@ -24,7 +24,6 @@ public class Team{
     private Long id;
 
     private String name;
-    private String players;
     private Long userid;
     private Integer money;
     private Integer ev;
@@ -32,18 +31,10 @@ public class Team{
     @JoinColumn(name = "arena_id")
     private Arena arena;
     
-    @Transient
-    List<Player> playerList;
-  
-	public List<Player> getPlayerList() {
-		if(playerList==null){
-			playerList = new ArrayList<Player>();
-		}
-		return playerList;
-	}
-	public void setPlayerList(List<Player> playerList) {
-		this.playerList = playerList;
-	}
+
+	@OneToMany(cascade = CascadeType.ALL,fetch=FetchType.EAGER,mappedBy = "team")
+    private List<TeamPlayer> players;
+   
 	public Arena getArena() {
 		return arena;
 	}
@@ -61,12 +52,6 @@ public class Team{
 	}
 	public void setName(String name) {
 		this.name = name;
-	}
-	public String getPlayers() {
-		return players;
-	}
-	public void setPlayers(String players) {
-		this.players = players;
 	}
 	public Long getUserid() {
 		return userid;
@@ -86,4 +71,14 @@ public class Team{
 	public void setEv(Integer ev) {
 		this.ev = ev;
 	}
+	public List<TeamPlayer> getPlayers() {
+		if(players==null){
+			players = new ArrayList<TeamPlayer>();
+		}
+		return players;
+	}
+	public void setPlayers(List<TeamPlayer> players) {
+		this.players = players;
+	}
+	
 }

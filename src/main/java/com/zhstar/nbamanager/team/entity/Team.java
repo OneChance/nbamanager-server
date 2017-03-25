@@ -32,7 +32,7 @@ public class Team{
     private Arena arena;
     
 
-	@OneToMany(cascade = CascadeType.ALL,fetch=FetchType.EAGER,mappedBy = "team")
+	@OneToMany(cascade={CascadeType.PERSIST,CascadeType.REFRESH,CascadeType.MERGE},fetch=FetchType.EAGER,mappedBy = "team")
     private List<TeamPlayer> players;
    
 	public Arena getArena() {

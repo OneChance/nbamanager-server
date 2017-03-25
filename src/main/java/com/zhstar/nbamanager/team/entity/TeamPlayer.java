@@ -33,7 +33,7 @@ public class TeamPlayer {
 	private int sal;
 	
 	@JsonIgnore
-	@ManyToOne(cascade=CascadeType.ALL)
+	@ManyToOne(cascade={CascadeType.PERSIST,CascadeType.REFRESH,CascadeType.MERGE},optional=true)
     @JoinColumn(name = "team_id")
 	private Team team;
 	

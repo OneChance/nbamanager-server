@@ -2,6 +2,6 @@
 /build/
 build/
 /bin/
-
-.settings/gradle/org.springsource.ide.eclipse.gradle.core.prefs
 .classpath
+/.settings/
+/gradle/

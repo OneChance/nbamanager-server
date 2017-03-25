@@ -27,6 +27,18 @@ public class TeamController {
     	Account account = accountService.getLoginAccount(request, response);
     	return teamService.signPlayer(account.getId(), player);
     }
+    
+    @RequestMapping("/breakPlayer/")
+    public NetMessage breakPlayer(@RequestBody Player player, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    	Account account = accountService.getLoginAccount(request, response);
+    	return teamService.breakPlayer(account.getId(), player);
+    }
+    
+    @RequestMapping("/changePlayerPos/")
+    public NetMessage changePlayerPos(@RequestBody Player player, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    	Account account = accountService.getLoginAccount(request, response);
+    	return teamService.changePlayerPos(account.getId(), player);
+    }
 
     @Resource
     AccountService accountService;

@@ -6,7 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.zhstar.nbamanager.common.NetMessage;
@@ -15,7 +15,7 @@ import com.zhstar.nbamanager.player.service.PlayerRepository;
 import com.zhstar.nbamanager.team.entity.Team;
 import com.zhstar.nbamanager.team.entity.TeamPlayer;
 
-@Component
+@Service
 public class TeamService {
 
 	/**
@@ -46,6 +46,15 @@ public class TeamService {
 		}
 		return team;
 	}
+	
+	public List<Long> getPlayerIdsToExclude(Long userid) {
+		Team team = teamRepository.findByUserid(userid);
+		List<Long> ids = getTeamPlayerIds(team);
+		if(ids.size()==0){
+			ids.add(-1l);
+		}
+		return ids;
+	} 
 
 	public List<Long> getTeamPlayerIds(Long userid) {
 		Team team = teamRepository.findByUserid(userid);
@@ -90,6 +99,70 @@ public class TeamService {
 		TeamPlayer teamPlayer = new TeamPlayer(player.getId(), player.getPos(), sign.getSal(),team);
 		team.getPlayers().add(teamPlayer);
 		team.setMoney(team.getMoney()-sign.getSal());
+		
+		teamRepository.save(team);
+		
+		return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS, null);
+	}
+	
+	@Transactional
+	public NetMessage breakPlayer(Long userid, Player player) throws Exception {
+		Player sign = playerRepository.findOne(player.getId());
+
+		if (sign == null) {
+			return new NetMessage(NetMessage.STATUS_PLAYER_NOT_EXIST, NetMessage.DANGER, null);
+		}
+		
+		Team team = getTeamByUser(userid, false);
+
+		List<TeamPlayer> players = team.getPlayers();
+		
+		if(players==null||players.size()==0){
+			return new NetMessage(NetMessage.STATUS_INVALID_OPERATION, NetMessage.DANGER, null);
+		}else{
+			for(int i=0;i<players.size();i++){				
+				if(players.get(i).getPlayerId().longValue()==player.getId().longValue()){
+					teamPlayerRepository.delete(players.remove(i));
+					break;
+				}
+			}
+		}	
+
+		int moneyAfterSign = team.getMoney()+sign.getSal();
+		teamRepository.updateMoney(team.getId(), moneyAfterSign);
+		
+		return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS, moneyAfterSign);
+	}
+	
+	@Transactional
+	public NetMessage changePlayerPos(Long userid, Player player) throws Exception {
+		
+		Player sign = playerRepository.findOne(player.getId());
+
+		if (sign == null) {
+			return new NetMessage(NetMessage.STATUS_PLAYER_NOT_EXIST, NetMessage.DANGER, null);
+		}
+		
+		Team team = getTeamByUser(userid, false);
+		
+		String checkRes = rosCheck(team, player);
+		
+		if (checkRes!=null) {
+			return new NetMessage(checkRes, NetMessage.DANGER, null);
+		}
+		
+		List<TeamPlayer> players = team.getPlayers();
+				
+		if(players==null||players.size()==0){
+			return new NetMessage(NetMessage.STATUS_INVALID_OPERATION, NetMessage.DANGER, null);
+		}else{
+			for(int i=0;i<players.size();i++){				
+				if(players.get(i).getPlayerId().longValue()==player.getId().longValue()){
+					players.get(i).setPos(player.getPos());
+					break;
+				}
+			}
+		}
 		
 		teamRepository.save(team);
 		
@@ -140,6 +213,8 @@ public class TeamService {
 
 	@Resource
 	private TeamRepository teamRepository;
+	@Resource
+	private TeamPlayerRepository teamPlayerRepository;
 	@Resource
 	private PlayerRepository playerRepository;
 }

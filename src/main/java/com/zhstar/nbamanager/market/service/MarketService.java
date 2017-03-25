@@ -15,11 +15,11 @@ import com.zhstar.nbamanager.team.service.TeamService;
 public class MarketService {
 
     public List<Player> getMarketPlayer(Account account,int page){	
-    	return playerRepository.findMarketPlayer(teamService.getTeamPlayerIds(account.getId()),new PageRequest(page,10));
+    	return playerRepository.findMarketPlayer(teamService.getPlayerIdsToExclude(account.getId()),new PageRequest(page,10));
     }
     
     public List<Player> getMarketPlayerByName(Account account,String name,int page){
-    	return playerRepository.findMarketPlayerByName(teamService.getTeamPlayerIds(account.getId()),name,new PageRequest(page,10));
+    	return playerRepository.findMarketPlayerByName(teamService.getPlayerIdsToExclude(account.getId()),name,new PageRequest(page,10));
     }
 
     @Resource

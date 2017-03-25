@@ -24,7 +24,7 @@ public class Arena {
 	private String img;
 	
 	@JsonIgnore
-	@OneToOne(optional = true, cascade = CascadeType.ALL,mappedBy = "arena")
+	@OneToOne(optional = true, cascade={CascadeType.PERSIST,CascadeType.REFRESH,CascadeType.MERGE},mappedBy = "arena")
 	private Team team;
 
 	public Long getId() {

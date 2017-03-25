@@ -1,17 +1,13 @@
 package com.zhstar.nbamanager.team.entity;
 
-import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.hibernate.annotations.GenericGenerator;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "team_player")
@@ -32,20 +28,17 @@ public class TeamPlayer {
 	@Transient
 	private int sal;
 	
-	@JsonIgnore
-	@ManyToOne(cascade={CascadeType.PERSIST,CascadeType.REFRESH,CascadeType.MERGE},optional=true)
-    @JoinColumn(name = "team_id")
-	private Team team;
+    @Column(name = "team_id")
+	private Long teamId;
 	
 	public TeamPlayer(){
 		
 	}
 	
-	public TeamPlayer(Long playerId,String pos,Integer signMoney,Team team){
+	public TeamPlayer(Long playerId,String pos,Integer signMoney){
 		this.playerId = playerId;
 		this.pos = pos;
 		this.signMoney = signMoney;
-		this.team = team;
 	}
 
 	public Long getId() {
@@ -79,13 +72,13 @@ public class TeamPlayer {
 	public void setSignMoney(Integer signMoney) {
 		this.signMoney = signMoney;
 	}
-
-	public Team getTeam() {
-		return team;
+	
+	public Long getTeamId() {
+		return teamId;
 	}
 
-	public void setTeam(Team team) {
-		this.team = team;
+	public void setTeamId(Long teamId) {
+		this.teamId = teamId;
 	}
 
 	public String getName() {

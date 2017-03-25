@@ -96,7 +96,7 @@ public class TeamService {
 			}
 		}		
 
-		TeamPlayer teamPlayer = new TeamPlayer(player.getId(), player.getPos(), sign.getSal(),team);
+		TeamPlayer teamPlayer = new TeamPlayer(player.getId(), player.getPos(), sign.getSal());
 		team.getPlayers().add(teamPlayer);
 		team.setMoney(team.getMoney()-sign.getSal());
 		
@@ -122,14 +122,14 @@ public class TeamService {
 		}else{
 			for(int i=0;i<players.size();i++){				
 				if(players.get(i).getPlayerId().longValue()==player.getId().longValue()){
-					teamPlayerRepository.delete(players.remove(i));
+					players.remove(i);
 					break;
 				}
 			}
 		}	
 
 		int moneyAfterSign = team.getMoney()+sign.getSal();
-		teamRepository.updateMoney(team.getId(), moneyAfterSign);
+		team.setMoney(moneyAfterSign);
 		
 		return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS, moneyAfterSign);
 	}

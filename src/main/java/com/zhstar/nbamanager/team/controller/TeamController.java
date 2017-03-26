@@ -3,6 +3,8 @@ package com.zhstar.nbamanager.team.controller;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,6 +42,12 @@ public class TeamController {
     	return teamService.changePlayerPos(account.getId(), player);
     }
 
+    @RequestMapping("/getContractLog/{page}")
+    public NetMessage getContractLog(@PathVariable("page") int page,HttpServletRequest request, HttpServletResponse response) throws Exception {
+    	Account account = accountService.getLoginAccount(request, response);
+    	return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS,teamService.getContractLogs(account.getId(),page));
+    }
+    
     @Resource
     AccountService accountService;
     @Resource

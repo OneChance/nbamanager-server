@@ -6,27 +6,33 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
+
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.zhstar.nbamanager.common.DateTool;
 import com.zhstar.nbamanager.common.NetMessage;
 import com.zhstar.nbamanager.player.entity.Player;
 import com.zhstar.nbamanager.player.service.PlayerRepository;
+import com.zhstar.nbamanager.team.entity.ContractLog;
 import com.zhstar.nbamanager.team.entity.Team;
 import com.zhstar.nbamanager.team.entity.TeamPlayer;
 
 @Service
 public class TeamService {
+	
+	public final int LOGS_IN_PAGE = 10;
 
 	/**
 	 * 
-	 * @param userid
+	 * @param userId
 	 * @param queryOriPlayer
 	 *            query from player_data to get metadata.
 	 * @return
 	 */
-	public Team getTeamByUser(Long userid, boolean queryOriPlayer) {
-		Team team = teamRepository.findByUserid(userid);
+	public Team getTeamByUser(Long userId, boolean queryOriPlayer) {
+		Team team = teamRepository.findByUserid(userId);
 		if (team == null) {
 			team = new Team();
 		} else {
@@ -47,8 +53,8 @@ public class TeamService {
 		return team;
 	}
 	
-	public List<Long> getPlayerIdsToExclude(Long userid) {
-		Team team = teamRepository.findByUserid(userid);
+	public List<Long> getPlayerIdsToExclude(Long userId) {
+		Team team = teamRepository.findByUserid(userId);
 		List<Long> ids = getTeamPlayerIds(team);
 		if(ids.size()==0){
 			ids.add(-1l);
@@ -56,8 +62,8 @@ public class TeamService {
 		return ids;
 	} 
 
-	public List<Long> getTeamPlayerIds(Long userid) {
-		Team team = teamRepository.findByUserid(userid);
+	public List<Long> getTeamPlayerIds(Long userId) {
+		Team team = teamRepository.findByUserid(userId);
 		return getTeamPlayerIds(team);
 	}
 
@@ -68,18 +74,23 @@ public class TeamService {
 		}
 		return ids;
 	}
+	
+	public List<ContractLog> getContractLogs(Long userId,int page){
+		List<ContractLog> logs = contractLogRepository.findByUserId(userId, new PageRequest(page,LOGS_IN_PAGE));
+		return logs;
+	}
 
 	@Transactional
-	public NetMessage signPlayer(Long userid, Player player) {
-		Player sign = playerRepository.findOne(player.getId());
+	public NetMessage signPlayer(Long userId, Player player) {
+		Player signPlayer = playerRepository.findOne(player.getId());
 
-		if (sign == null) {
+		if (signPlayer == null) {
 			return new NetMessage(NetMessage.STATUS_PLAYER_NOT_EXIST, NetMessage.DANGER, null);
 		}
 		
-		Team team = getTeamByUser(userid, false);
+		Team team = getTeamByUser(userId, false);
 		
-		if(team.getMoney()<sign.getSal()){
+		if(team.getMoney()<signPlayer.getSal()){
 			return new NetMessage(NetMessage.STATUS_NOT_ENOUGH_MONEY, NetMessage.DANGER, null);
 		}
 		
@@ -96,24 +107,34 @@ public class TeamService {
 			}
 		}		
 
-		TeamPlayer teamPlayer = new TeamPlayer(player.getId(), player.getPos(), sign.getSal());
+		TeamPlayer teamPlayer = new TeamPlayer(player.getId(), player.getPos(), signPlayer.getSal());
 		team.getPlayers().add(teamPlayer);
-		team.setMoney(team.getMoney()-sign.getSal());
+		team.setMoney(team.getMoney()-signPlayer.getSal());
 		
 		teamRepository.save(team);
+		
+		ContractLog contractLog = new ContractLog();
+		contractLog.setDate(DateTool.getCurrentString());
+		contractLog.setMoney(signPlayer.getSal());
+		contractLog.setPlayerId(signPlayer.getPlayerId());
+		contractLog.setType(contractLog.SIGN);
+		contractLog.setPlayerName(signPlayer.getName());
+		contractLog.setUserId(userId);
+		
+		contractLogRepository.save(contractLog);
 		
 		return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS, null);
 	}
 	
 	@Transactional
-	public NetMessage breakPlayer(Long userid, Player player) throws Exception {
-		Player sign = playerRepository.findOne(player.getId());
+	public NetMessage breakPlayer(Long userId, Player player) throws Exception {
+		Player breakPlayer = playerRepository.findOne(player.getId());
 
-		if (sign == null) {
+		if (breakPlayer == null) {
 			return new NetMessage(NetMessage.STATUS_PLAYER_NOT_EXIST, NetMessage.DANGER, null);
 		}
 		
-		Team team = getTeamByUser(userid, false);
+		Team team = getTeamByUser(userId, false);
 
 		List<TeamPlayer> players = team.getPlayers();
 		
@@ -126,16 +147,26 @@ public class TeamService {
 					break;
 				}
 			}
-		}	
+		}
 
-		int moneyAfterSign = team.getMoney()+sign.getSal();
+		int moneyAfterSign = team.getMoney()+breakPlayer.getSal();
 		team.setMoney(moneyAfterSign);
+		
+		ContractLog contractLog = new ContractLog();
+		contractLog.setDate(DateTool.getCurrentString());
+		contractLog.setMoney(breakPlayer.getSal());
+		contractLog.setPlayerId(breakPlayer.getPlayerId());
+		contractLog.setPlayerName(breakPlayer.getName());
+		contractLog.setType(contractLog.BREAK);
+		contractLog.setUserId(userId);
+		
+		contractLogRepository.save(contractLog);
 		
 		return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS, moneyAfterSign);
 	}
 	
 	@Transactional
-	public NetMessage changePlayerPos(Long userid, Player player) throws Exception {
+	public NetMessage changePlayerPos(Long userId, Player player) throws Exception {
 		
 		Player sign = playerRepository.findOne(player.getId());
 
@@ -143,7 +174,7 @@ public class TeamService {
 			return new NetMessage(NetMessage.STATUS_PLAYER_NOT_EXIST, NetMessage.DANGER, null);
 		}
 		
-		Team team = getTeamByUser(userid, false);
+		Team team = getTeamByUser(userId, false);
 		
 		String checkRes = rosCheck(team, player);
 		
@@ -217,4 +248,6 @@ public class TeamService {
 	private TeamPlayerRepository teamPlayerRepository;
 	@Resource
 	private PlayerRepository playerRepository;
+	@Resource
+	private ContractLogRepository contractLogRepository;
 }

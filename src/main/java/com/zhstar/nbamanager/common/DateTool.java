@@ -25,4 +25,8 @@ public class DateTool {
 	public static Date getToday(){
 		return getCalendar().getTime();
 	}
+	
+	public static String getCurrentString(){
+		return getDateString(getToday());
+	}
 }

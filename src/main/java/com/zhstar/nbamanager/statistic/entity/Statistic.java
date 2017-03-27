@@ -24,8 +24,8 @@ public class Statistic {
 	private Integer ast;
 	private Integer stl;
 	private Integer blk;
-	private Integer to;
-	private Integer pf;
+	private Integer fa;
+	private Integer fo;
 	private Integer pts;
 	private Integer ev;
 	public Long getId() {
@@ -110,17 +110,17 @@ public class Statistic {
 	public void setBlk(Integer blk) {
 		this.blk = blk;
 	}
-	public Integer getTo() {
-		return to;
+	public Integer getFa() {
+		return fa;
 	}
-	public void setTo(Integer to) {
-		this.to = to;
+	public void setFa(Integer fa) {
+		this.fa = fa;
 	}
-	public Integer getPf() {
-		return pf;
+	public Integer getFo() {
+		return fo;
 	}
-	public void setPf(Integer pf) {
-		this.pf = pf;
+	public void setFo(Integer fo) {
+		this.fo = fo;
 	}
 	public Integer getPts() {
 		return pts;

@@ -14,4 +14,7 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
 	
 	@Query("select p from Player p where p.id not in ?1 and p.name like %?2%")
 	public List<Player> findMarketPlayerByName(List<Long> idsInTeam,String name,Pageable pageable);
+
+	@Query("select p from Player p where p.id in ?1")
+	public List<Player> findByPlayerIdIn(List<Long> ids);
 }

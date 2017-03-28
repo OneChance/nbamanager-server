@@ -6,13 +6,15 @@ import java.util.Date;
 
 public class DateTool {
 	private static Calendar calendar;
-	private static SimpleDateFormat sdf;
+	private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+	private static SimpleDateFormat sdfNoSplit= new SimpleDateFormat("yyyyMMdd");
 	
 	public static String getDateString(Date date){
-		if(sdf==null){
-			sdf = new SimpleDateFormat("yyyy-MM-dd");
-		}
 		return sdf.format(date);
+	}
+	
+	public static String getDateStringNoSplit(Date date){
+		return sdfNoSplit.format(date);
 	}
 	
 	public static Calendar getCalendar(){
@@ -28,5 +30,9 @@ public class DateTool {
 	
 	public static String getCurrentString(){
 		return getDateString(getToday());
+	}
+	
+	public static String getCurrentStringNoSplit(){
+		return getDateStringNoSplit(getToday());
 	}
 }

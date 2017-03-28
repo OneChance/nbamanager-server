@@ -13,6 +13,7 @@ public class Statistic {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	private Long playerId;
+	private String playerName;
 	private String gameDate;
 	private Integer min;
 	private String fg;
@@ -40,6 +41,12 @@ public class Statistic {
 	}
 	public void setPlayerId(Long playerId) {
 		this.playerId = playerId;
+	}
+	public String getPlayerName() {
+		return playerName;
+	}
+	public void setPlayerName(String playerName) {
+		this.playerName = playerName;
 	}
 	public void setMin(Integer min) {
 		this.min = min;

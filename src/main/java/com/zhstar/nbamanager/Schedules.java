@@ -161,11 +161,10 @@ public class Schedules {
 		BigDecimal throwOut = new BigDecimal(statistic.getFt().split("-")[1]);
 		BigDecimal throwIn = new BigDecimal(statistic.getFt().split("-")[0]);
 		BigDecimal fault = new BigDecimal(statistic.getFa());
-		BigDecimal foul = new BigDecimal(statistic.getFo());
 
 		int ev = Math.round(pts.add(oreb.multiply(new BigDecimal(bonus))).add(dreb).add(assist)
 				.add(steal.multiply(new BigDecimal(bonus))).add(block.multiply(new BigDecimal(bonus)))
-				.subtract(shootOut).add(shootIn).subtract(throwOut).add(throwIn).subtract(fault).subtract(foul)
+				.subtract(shootOut).add(shootIn).subtract(throwOut).add(throwIn).subtract(fault)
 				.floatValue());
 
 		if (statistic.getMin() == 0) {

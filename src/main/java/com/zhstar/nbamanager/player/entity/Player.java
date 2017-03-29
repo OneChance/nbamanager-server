@@ -14,6 +14,7 @@ public class Player {
 	private String name;
 	private String pos;
 	private int sal;
+	private int status;
 	
 	public Long getId() {
 		return id;
@@ -44,6 +45,12 @@ public class Player {
 	}
 	public void setPlayerId(Long playerId) {
 		this.playerId = playerId;
+	}
+	public int getStatus() {
+		return status;
+	}
+	public void setStatus(int status) {
+		this.status = status;
 	}
 	
 }

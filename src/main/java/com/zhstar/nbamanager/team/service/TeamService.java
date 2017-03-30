@@ -75,8 +75,8 @@ public class TeamService {
 		return ids;
 	}
 	
-	public List<ContractLog> getContractLogs(Long userId,int page){
-		List<ContractLog> logs = contractLogRepository.findByUserId(userId, new PageRequest(page,LOGS_IN_PAGE));
+	public List<ContractLog> getContractLogs(Long userId,String searchName,int page){
+		List<ContractLog> logs = contractLogRepository.findByUserId(userId, searchName,new PageRequest(page,LOGS_IN_PAGE));
 		return logs;
 	}
 

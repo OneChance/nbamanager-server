@@ -45,7 +45,8 @@ public class TeamController {
     @RequestMapping("/getContractLog/{page}")
     public NetMessage getContractLog(@PathVariable("page") int page,HttpServletRequest request, HttpServletResponse response) throws Exception {
     	Account account = accountService.getLoginAccount(request, response);
-    	return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS,teamService.getContractLogs(account.getId(),page));
+    	String searchName = request.getParameter("searchName");
+    	return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS,teamService.getContractLogs(account.getId(),searchName,page));
     }
     
     @Resource

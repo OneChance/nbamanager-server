@@ -23,13 +23,10 @@ public class MarketController {
     public NetMessage getMarketPlayer(@PathVariable("page") int page,HttpServletRequest request, HttpServletResponse response) throws Exception {  	
 		Account account = accountService.getLoginAccount(request, response);
 		String searchName = request.getParameter("searchName");
+		String searchPos = request.getParameter("searchPos");
 		List<Player> players = new ArrayList<Player>();
 		
-		if(searchName!=null&&!searchName.equals("")){
-			players = marketService.getMarketPlayerByName(account, searchName, page);
-		}else{
-			players = marketService.getMarketPlayer(account, page);
-		}
+		players = marketService.getMarketPlayer(account,searchName,searchPos, page);
 		
 		return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS,players);
     } 

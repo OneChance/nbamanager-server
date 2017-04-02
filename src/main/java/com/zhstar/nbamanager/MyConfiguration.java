@@ -40,7 +40,7 @@ public class MyConfiguration extends WebMvcConfigurerAdapter {
 				request.setCharacterEncoding("UTF-8");
 				response.setCharacterEncoding("UTF-8");
 
-				if (request.getRequestURL().indexOf("/login/") == -1) {
+				if (request.getRequestURL().indexOf("/signIn/") == -1 && request.getRequestURL().indexOf("/signOut/") == -1 && request.getRequestURL().indexOf("/signUp/") == -1) {
 					boolean isLogin = true;
 					Account account = accountService.getLoginAccount(request, response);
 					if (account == null) {

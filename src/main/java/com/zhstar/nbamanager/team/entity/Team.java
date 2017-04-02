@@ -26,8 +26,8 @@ public class Team{
     private String name;
     private Long userid;
     private Integer money;
-    private Integer ev;
-    @OneToOne(optional = false)
+    
+    @OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
     @JoinColumn(name = "arena_id")
     private Arena arena;
     
@@ -65,12 +65,6 @@ public class Team{
 	}
 	public void setMoney(Integer money) {
 		this.money = money;
-	}
-	public Integer getEv() {
-		return ev;
-	}
-	public void setEv(Integer ev) {
-		this.ev = ev;
 	}
 	public List<TeamPlayer> getPlayers() {
 		if(players==null){

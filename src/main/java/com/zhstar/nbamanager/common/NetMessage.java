@@ -7,7 +7,8 @@ public class NetMessage {
     public static String WARNING = "warning";
     public static String INFO = "info";
     
-    public static String STATUS_ACCOUNT_ERROR = "login_status_error";
+    public static String STATUS_ACCOUNT_ERROR = "login_account_error";
+    public static String STATUS_ACCOUNT_INVALID = "account_invalid";
     public static String STATUS_INVALID_OPERATION = "invalid_operation";
     public static String STATUS_LOGIN_STATUS_ERROR = "login_status_error";
     public static String STATUS_TEAM_FULL = "team_full";

@@ -15,14 +15,25 @@ import com.zhstar.nbamanager.common.NetMessage;
 @RestController
 public class AccountController {
 
-    @RequestMapping("/login/")
-    public NetMessage login(@RequestBody Account account, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        return accountService.login(account, request, response);
+    @RequestMapping("/signIn/")
+    public NetMessage signIn(@RequestBody Account account, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        return accountService.signIn(account, request, response);
     }
     
     @RequestMapping("/isLogin/")
     public NetMessage isLogin(HttpServletRequest request, HttpServletResponse response) throws Exception {
     	return new NetMessage("", NetMessage.SUCCESS);
+    }
+    
+    @RequestMapping("/signUp/")
+    public NetMessage signUp(@RequestBody Account account, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        return accountService.signUp(account, request, response);
+    }
+    
+    
+    @RequestMapping("/signOut/")
+    public NetMessage singOut(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        return accountService.signOut(request, response);
     }
 
     @Resource

@@ -10,9 +10,13 @@ import com.zhstar.nbamanager.account.entity.Account;
 import com.zhstar.nbamanager.common.CookieTool;
 import com.zhstar.nbamanager.common.MD5Tool;
 import com.zhstar.nbamanager.common.NetMessage;
-import java.security.MessageDigest;
+import com.zhstar.nbamanager.team.entity.Arena;
+import com.zhstar.nbamanager.team.entity.Team;
+import com.zhstar.nbamanager.team.entity.TeamPlayer;
+import com.zhstar.nbamanager.team.service.TeamRepository;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Date;
 
 @Component
@@ -42,7 +46,7 @@ public class AccountService {
 		return true;
 	}
 
-	public NetMessage checkAccount(Account account) throws Exception {
+	public NetMessage signUpValidation(Account account) throws Exception {
 
 		boolean valid = inputCheck(account);
 
@@ -53,13 +57,13 @@ public class AccountService {
 		Account accountDb = accountRepository.getByName(account.getName());
 
 		if (accountDb != null) {
-			return new NetMessage("account_exist", NetMessage.DANGER);
+			return new NetMessage(NetMessage.STATUS_ACCOUNT_INVALID, NetMessage.DANGER);
 		}
 
 		return null;
 	}
 
-	public Account checkLogin(Account account) throws Exception {
+	public Account signInValidation(Account account) throws Exception {
 
 		boolean valid = inputCheck(account);
 
@@ -72,7 +76,7 @@ public class AccountService {
 		if (accountDb == null) {
 			return null;
 		} else {
-			if (!accountDb.getPassword().equals(account.getPassword())) {
+			if (!accountDb.getPassword().equals(MD5Tool.getEncrypted(account.getPassword() + accountDb.getSalt()))) {
 				return null;
 			}
 			return accountDb;
@@ -80,16 +84,46 @@ public class AccountService {
 	}
 
 	@Transactional
-	public NetMessage login(Account account, HttpServletRequest request, HttpServletResponse response)
+	public NetMessage signIn(Account account, HttpServletRequest request, HttpServletResponse response)
 			throws Exception {
 
-		Account accountDb = checkLogin(account);
+		Account accountDb = signInValidation(account);
 		if (accountDb == null) {
 			return new NetMessage(NetMessage.STATUS_ACCOUNT_ERROR, NetMessage.DANGER);
 		}
 
 		this.LogAccount(request, response, accountDb);
 
+		return new NetMessage("ok", NetMessage.SUCCESS);
+	}
+
+	@Transactional
+	public NetMessage signUp(Account account, HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
+		NetMessage message = signUpValidation(account);
+		if (message != null) {
+			return message;
+		}
+
+		encrypt(account);
+		Account accountDb = accountRepository.save(account);
+		this.LogAccount(request, response, accountDb);
+		
+		Team team = new Team();
+		team.setUserid(accountDb.getId());
+		team.setMoney(10000000);
+		team.setName(account.getName()+"的球队");
+		team.setArena(new Arena(account.getName()+"的球馆"));
+		team.setPlayers(new ArrayList<TeamPlayer>());
+		teamRepository.save(team);
+
+		return new NetMessage("ok", NetMessage.SUCCESS);
+	}
+	
+	public NetMessage signOut(HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+		this.clearAccount(request, response);
 		return new NetMessage("ok", NetMessage.SUCCESS);
 	}
 
@@ -140,13 +174,12 @@ public class AccountService {
 		byte[] randomBytes = new byte[32];
 		csprng.nextBytes(randomBytes);
 		String salt = MD5Tool.bytes2Hex(randomBytes);
-		MessageDigest md = MessageDigest.getInstance("SHA-256");
-		md.update((account.getPassword() + salt).getBytes());
-		String password = MD5Tool.bytes2Hex(md.digest());
-		account.setPassword(password);
+		account.setPassword(MD5Tool.getEncrypted(account.getPassword() + salt));
 		account.setSalt(salt);
 	}
 
 	@Resource
 	private AccountRepository accountRepository;
+	@Resource
+	private TeamRepository teamRepository;
 }

@@ -111,7 +111,7 @@ public class AccountService {
 		this.LogAccount(request, response, accountDb);
 		
 		Team team = new Team();
-		team.setUserid(accountDb.getId());
+		team.setUserId(accountDb.getId());
 		team.setMoney(10000000);
 		team.setName(account.getName()+"的球队");
 		team.setArena(new Arena(account.getName()+"的球馆"));

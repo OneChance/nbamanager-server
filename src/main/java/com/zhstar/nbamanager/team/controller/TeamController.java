@@ -12,6 +12,7 @@ import com.zhstar.nbamanager.account.entity.Account;
 import com.zhstar.nbamanager.account.service.AccountService;
 import com.zhstar.nbamanager.common.NetMessage;
 import com.zhstar.nbamanager.player.entity.Player;
+import com.zhstar.nbamanager.team.entity.Team;
 import com.zhstar.nbamanager.team.service.TeamService;
 
 
@@ -40,6 +41,12 @@ public class TeamController {
     public NetMessage changePlayerPos(@RequestBody Player player, HttpServletRequest request, HttpServletResponse response) throws Exception {
     	Account account = accountService.getLoginAccount(request, response);
     	return teamService.changePlayerPos(account.getId(), player);
+    }
+    
+    @RequestMapping("/changeTeamName/")
+    public NetMessage changeTeamName(@RequestBody Team team, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    	Account account = accountService.getLoginAccount(request, response);
+    	return teamService.changeTeamName(account.getId(),team.getName());
     }
 
     @RequestMapping("/getContractLog/{page}")

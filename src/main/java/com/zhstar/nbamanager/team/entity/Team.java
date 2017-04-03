@@ -24,7 +24,7 @@ public class Team{
     private Long id;
 
     private String name;
-    private Long userid;
+    private Long userId;
     private Integer money;
     
     @OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
@@ -54,11 +54,11 @@ public class Team{
 	public void setName(String name) {
 		this.name = name;
 	}
-	public Long getUserid() {
-		return userid;
+	public Long getUserId() {
+		return userId;
 	}
-	public void setUserid(Long userid) {
-		this.userid = userid;
+	public void setUserId(Long userId) {
+		this.userId = userId;
 	}
 	public Integer getMoney() {
 		return money;

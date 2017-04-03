@@ -27,12 +27,11 @@ public class TeamService {
 	/**
 	 * 
 	 * @param userId
-	 * @param queryOriPlayer
-	 *            query from player_data to get metadata.
+	 * @param queryOriPlayer 是否查询球员元数据
 	 * @return
 	 */
 	public Team getTeamByUser(Long userId, boolean queryOriPlayer) {
-		Team team = teamRepository.findByUserid(userId);
+		Team team = teamRepository.findByUserId(userId);
 		if (team == null) {
 			team = new Team();
 		} else {
@@ -54,7 +53,7 @@ public class TeamService {
 	}
 	
 	public List<Long> getPlayerIdsToExclude(Long userId) {
-		Team team = teamRepository.findByUserid(userId);
+		Team team = teamRepository.findByUserId(userId);
 		List<Long> ids = getTeamPlayerIds(team);
 		if(ids.size()==0){
 			ids.add(-1l);
@@ -63,7 +62,7 @@ public class TeamService {
 	} 
 
 	public List<Long> getTeamPlayerIds(Long userId) {
-		Team team = teamRepository.findByUserid(userId);
+		Team team = teamRepository.findByUserId(userId);
 		return getTeamPlayerIds(team);
 	}
 
@@ -197,6 +196,12 @@ public class TeamService {
 		
 		teamRepository.save(team);
 		
+		return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS, null);
+	}
+	
+	@Transactional
+	public NetMessage changeTeamName(Long userId,String name){
+		teamRepository.updateName(userId, name);
 		return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS, null);
 	}
 

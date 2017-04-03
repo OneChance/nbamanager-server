@@ -33,7 +33,7 @@ public class Schedules {
 
 		String playerNotExist = "";
 
-		Document doc = Jsoup.connect("http://nba.sports.sina.com.cn/match_result.php?dpc=1").timeout(0).get();
+		Document doc = Jsoup.connect("http://nba.sports.sina.com.cn/match_result.php?day=0&years="+DateTool.getNowYear()+"&months="+DateTool.getNowMonthString()+"&teams=").timeout(0).get();
 		Elements trs = doc.select("#table980middle tr");
 
 		String today = DateTool.getCurrentStringNoSplit();

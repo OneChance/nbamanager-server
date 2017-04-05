@@ -5,3 +5,5 @@ build/
 .classpath
 /.settings/
 /gradle/
+/src/main/resources/static/
+!favicon.ico

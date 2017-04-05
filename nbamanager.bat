@@ -1,0 +1,1 @@
+java -jar E:\nbamanager-server\build\libs\nbamanager-server-0.0.1-SNAPSHOT.jar --system.env=product --server.port=80

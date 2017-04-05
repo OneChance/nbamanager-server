@@ -4,10 +4,13 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -21,12 +24,23 @@ import com.zhstar.nbamanager.common.NetMessage;
 @Configuration
 public class MyConfiguration extends WebMvcConfigurerAdapter {
 
+	@Value("${system.env}")
+	private String env;
+
+	public void addViewControllers(ViewControllerRegistry registry) {
+		registry.addViewController("/").setViewName("forward:/index.html");
+		registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
+		super.addViewControllers(registry);
+	}
+
 	@Bean
 	public WebMvcConfigurer corsConfigurer() {
 		return new WebMvcConfigurerAdapter() {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/**").allowedOrigins("http://localhost:8888").allowCredentials(true);
+				if (env != null && env.equals("dev")) {
+					registry.addMapping("/**").allowedOrigins("http://localhost:8888").allowCredentials(true);
+				}
 			}
 		};
 	}
@@ -40,7 +54,9 @@ public class MyConfiguration extends WebMvcConfigurerAdapter {
 				request.setCharacterEncoding("UTF-8");
 				response.setCharacterEncoding("UTF-8");
 
-				if (request.getRequestURL().indexOf("/signIn/") == -1 && request.getRequestURL().indexOf("/signOut/") == -1 && request.getRequestURL().indexOf("/signUp/") == -1) {
+				if (request.getRequestURL().indexOf("/signIn/") == -1
+						&& request.getRequestURL().indexOf("/signOut/") == -1
+						&& request.getRequestURL().indexOf("/signUp/") == -1) {
 					boolean isLogin = true;
 					Account account = accountService.getLoginAccount(request, response);
 					if (account == null) {
@@ -56,20 +72,25 @@ public class MyConfiguration extends WebMvcConfigurerAdapter {
 							} else {
 								if (!accountDB.getToken().equals(token)) {
 									isLogin = false;
-								}else{
+								} else {
 									request.getSession().setAttribute("login_account", accountDB.getId());
 								}
 							}
 						}
 					}
 					if (!isLogin) {
-						response.setHeader("Access-Control-Allow-Headers",
-								"Origin, No-Cache, X-Requested-With, If-Modified-Since, Pragma, Last-Modified, Cache-Control, Expires, Content-Type, X-E4M-With");
-						response.setHeader("Access-Control-Allow-Credentials", "true");
-						response.setHeader("Access-Control-Allow-Origin", "http://localhost:8888");
-						response.getWriter().write(JsonTool
-								.toString(new NetMessage(NetMessage.STATUS_LOGIN_STATUS_ERROR, NetMessage.DANGER)));
-						return false;
+						if (env != null && env.equals("dev")) {
+							response.setHeader("Access-Control-Allow-Headers",
+									"Origin, No-Cache, X-Requested-With, If-Modified-Since, Pragma, Last-Modified, Cache-Control, Expires, Content-Type, X-E4M-With");
+							response.setHeader("Access-Control-Allow-Credentials", "true");
+							response.setHeader("Access-Control-Allow-Origin", "http://localhost:8888");
+						}
+
+						if (!request.getRequestURI().equals("/")) {
+							response.getWriter().write(JsonTool
+									.toString(new NetMessage(NetMessage.STATUS_LOGIN_STATUS_ERROR, NetMessage.DANGER)));
+							return false;
+						}		
 					}
 
 				}

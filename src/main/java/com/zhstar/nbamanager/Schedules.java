@@ -18,12 +18,14 @@ import com.zhstar.nbamanager.player.entity.Player;
 import com.zhstar.nbamanager.player.service.PlayerRepository;
 import com.zhstar.nbamanager.statistic.entity.Statistic;
 import com.zhstar.nbamanager.statistic.service.StatisticRepository;
+import com.zhstar.nbamanager.team.service.TeamRepository;
 
 @Configuration
 @EnableScheduling
 public class Schedules {
 
 	public static final float bonus = 1.2f;
+	public final int LACK_PLAYER_PUNISHMENT = -25;
 
 	@Transactional
 	@Scheduled(cron = "0 40 14 ? * *")
@@ -144,8 +146,14 @@ public class Schedules {
 		if (!playerNotExist.equals("")) {
 			statisticRepository.recordPlayersNotExist(playerNotExist);
 		}
-		
 		System.out.println("更新数据库完成");
+	}
+	
+	@Transactional
+	@Scheduled(cron = "0 50 14 ? * *")
+	public void closeTodayMoney() throws Exception {
+		teamRepository.closeMoney(DateTool.getCurrentString(), LACK_PLAYER_PUNISHMENT);
+		System.out.println("球队今日收入结算完成");
 	}
 
 	private void calEV(Statistic statistic) {
@@ -184,4 +192,6 @@ public class Schedules {
 	private PlayerRepository playerRepository;
 	@Resource
 	private StatisticRepository statisticRepository;
+	@Resource
+	private TeamRepository teamRepository;
 }

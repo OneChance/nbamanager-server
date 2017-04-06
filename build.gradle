@@ -27,7 +27,6 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter-data-rest')
 	compile('org.springframework.boot:spring-boot-starter-web')
 	compile('org.jsoup:jsoup:1.5.2')
-	testCompile('org.springframework.boot:spring-boot-starter-test')
 	compile('com.fasterxml.jackson.core:jackson-databind:2.8.4')
     runtime('mysql:mysql-connector-java')
 }

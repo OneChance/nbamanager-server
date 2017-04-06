@@ -55,7 +55,7 @@ public class TeamController {
     	String searchName = request.getParameter("searchName");
     	return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS,teamService.getContractLogs(account.getId(),searchName,page));
     }
-    
+
     @Resource
     AccountService accountService;
     @Resource

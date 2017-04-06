@@ -1,10 +1,10 @@
 package com.zhstar.nbamanager.statistic.entity;
 
-import java.util.Map;
+import java.util.List;
 
 public class StatisticAll {
 	private Statistic today;
-	private Map<String,Integer> latest;
+	private List<GameEv> latest;
 	
 	public Statistic getToday() {
 		return today;
@@ -12,12 +12,10 @@ public class StatisticAll {
 	public void setToday(Statistic today) {
 		this.today = today;
 	}
-	public Map<String, Integer> getLatest() {
+	public List<GameEv> getLatest() {
 		return latest;
 	}
-	public void setLatest(Map<String, Integer> latest) {
+	public void setLatest(List<GameEv> latest) {
 		this.latest = latest;
 	}
-	
-	
 }

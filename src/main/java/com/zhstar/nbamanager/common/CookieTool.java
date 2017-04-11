@@ -46,6 +46,7 @@ public class CookieTool {
 
 	public static void cleanCookies(HttpServletResponse response, String key) {
 		Cookie cookie = new Cookie(key, null);
+		cookie.setMaxAge(0);
 		cookie.setPath("/");
 		response.addCookie(cookie);
 	}

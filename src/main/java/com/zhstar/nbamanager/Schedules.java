@@ -31,7 +31,7 @@ public class Schedules {
 	@Scheduled(cron = "0 40 14 ? * *")
 	public void getWebData() throws Exception {
 		
-		System.out.println("开始获取比赛数据");
+		System.out.println("fetch game data begin...");
 
 		String playerNotExist = "";
 
@@ -123,7 +123,7 @@ public class Schedules {
 			}
 		}
 		
-		System.out.println("获取比赛数据完成");
+		System.out.println("fetch game data complete...");
 
 		if (statistics.size() > 0) {
 			// 更新球员工资
@@ -146,14 +146,14 @@ public class Schedules {
 		if (!playerNotExist.equals("")) {
 			statisticRepository.recordPlayersNotExist(playerNotExist);
 		}
-		System.out.println("更新数据库完成");
+		System.out.println("database updated...");
 	}
 	
 	@Transactional
 	@Scheduled(cron = "0 50 14 ? * *")
 	public void closeTodayMoney() throws Exception {
 		teamRepository.closeMoney(DateTool.getCurrentString(), LACK_PLAYER_PUNISHMENT);
-		System.out.println("球队今日收入结算完成");
+		System.out.println("money closed...");
 	}
 
 	private void calEV(Statistic statistic) {

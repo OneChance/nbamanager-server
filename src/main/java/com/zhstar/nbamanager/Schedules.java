@@ -65,7 +65,7 @@ public class Schedules {
 
 				String id = getIdFromUrl(href);
 
-				if (id.contains(today)) {
+				if (id.startsWith(today)) {
 
 					Document oneGame = Jsoup.connect("http://nba.sports.sina.com.cn/" + href).timeout(0).get();
 					Elements allTr = oneGame.select("#main tr");
@@ -128,7 +128,7 @@ public class Schedules {
 				}
 			}
 
-			System.out.println("fetch game data complete...");
+			System.out.println("fetch game data complete... size:"+statistics.size());
 
 			if (statistics.size() > 0) {
 				// 更新球员工资
@@ -183,7 +183,7 @@ public class Schedules {
 				.subtract(shootOut).add(shootIn).subtract(throwOut).add(throwIn).subtract(fault).floatValue());
 
 		if (statistic.getMin() == 0) {
-			ev = -2;
+			ev = -5;
 		}
 
 		statistic.setEv(ev);

@@ -5,7 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class DateTool {
-	private static Calendar calendar;
+
 	private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 	private static SimpleDateFormat sdfNoSplit = new SimpleDateFormat("yyyyMMdd");
 
@@ -18,10 +18,7 @@ public class DateTool {
 	}
 
 	public static Calendar getCalendar() {
-		if (calendar == null) {
-			calendar = Calendar.getInstance();
-		}
-		return calendar;
+		return Calendar.getInstance();
 	}
 
 	public static Date getToday() {

@@ -1,6 +1,13 @@
 package com.zhstar.nbamanager;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Resource;
@@ -38,9 +45,14 @@ public class Schedules {
 			System.out.println("fetch game data begin...");
 
 			String playerNotExist = "";
+			
+			String gamesUrl = "http://nba.sports.sina.com.cn/match_result.php?day=0&years="
+					+ DateTool.getNowYear() + "&months=" + DateTool.getNowMonthString() + "&teams=";
 
-			Document doc = Jsoup.connect("http://nba.sports.sina.com.cn/match_result.php?day=0&years="
-					+ DateTool.getNowYear() + "&months=" + DateTool.getNowMonthString() + "&teams=").timeout(0).get();
+			Document doc = Jsoup.connect(gamesUrl)
+					.userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.84 Safari/535.11 LBBROWSER")
+					.header("Referer", "http://nba.sports.sina.com.cn/match_result.php")
+					.timeout(0).get();
 			Elements trs = doc.select("#table980middle tr");
 
 			String today = DateTool.getCurrentStringNoSplit();
@@ -67,7 +79,9 @@ public class Schedules {
 
 				if (id.startsWith(today)) {
 
-					Document oneGame = Jsoup.connect("http://nba.sports.sina.com.cn/" + href).timeout(0).get();
+					Document oneGame = Jsoup.connect("http://nba.sports.sina.com.cn/" + href)
+							.header("Referer", gamesUrl)
+							.userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.84 Safari/535.11 LBBROWSER").timeout(0).get();
 					Elements allTr = oneGame.select("#main tr");
 
 					for (Element onePlayer : allTr) {
@@ -195,6 +209,88 @@ public class Schedules {
 		return id;
 	}
 
+	public Document getDoc(String docUrl) {
+
+		Document doc = null;
+		String serverRes = "";
+
+		int i = 0;
+
+		List<String> ips = getProxyList();
+
+		while (i < ips.size() && (serverRes.equals("") || serverRes.contains("301 Moved Permanently"))) {
+			try {
+				
+				System.out.println("ip switch to:" + ips.get(i));
+				
+				Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ips.get(i), 80));
+
+				URL url = new URL(docUrl);
+
+				HttpURLConnection urlConn = (HttpURLConnection) url.openConnection(proxy);
+				
+				urlConn.setRequestProperty("contentType", "utf-8");
+				urlConn.setRequestProperty("User-agent",
+						"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.84 Safari/535.11 LBBROWSER");
+
+				urlConn.connect();
+
+				InputStream is = urlConn.getInputStream();
+
+				BufferedReader buffer = new BufferedReader(new InputStreamReader(is,"GBK"));
+
+				StringBuffer bs = new StringBuffer();
+
+				String l = null;
+
+				while ((l = buffer.readLine()) != null) {
+					bs.append(l);
+				}
+
+				serverRes = bs.toString();
+
+			} catch (Exception e) {
+
+			}
+
+			i++;
+		}
+
+		if (i >= 1) {
+			System.out.println("use ip:" + ips.get(i - 1));
+		}
+
+		if (!serverRes.equals("")) {
+			doc = Jsoup.parse(serverRes.toString());
+		}
+
+		return doc;
+	}
+
+	// 获取代理服务器列表
+	public List<String> getProxyList() {
+		List<String> ips = new ArrayList<String>();
+		try {
+			Document proxySite = Jsoup.connect("http://www.xicidaili.com/")
+					.userAgent(
+							"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31")
+					.timeout(0).get();
+			Elements trs = proxySite.select("#ip_list tr");
+			for (Element tr : trs) {
+				Elements tds = tr.select("td");
+				if (tds.size() == 8) {
+					String port = tds.get(2).html();
+					if (port != null && port.equals("80")) {
+						ips.add(tds.get(1).html());
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ips;
+	}
+	
 	@Resource
 	private PlayerRepository playerRepository;
 	@Resource

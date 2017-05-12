@@ -57,11 +57,8 @@ public class Statistic {
 	public void setGameDate(String gameDate) {
 		this.gameDate = gameDate;
 	}
-	public int getMin() {
+	public Integer getMin() {
 		return min;
-	}
-	public void setMin(int min) {
-		this.min = min;
 	}
 	public String getFg() {
 		return fg;

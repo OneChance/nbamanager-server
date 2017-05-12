@@ -38,9 +38,9 @@ public class MyConfiguration extends WebMvcConfigurerAdapter {
 		return new WebMvcConfigurerAdapter() {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
-				if (env != null && env.equals("dev")) {
-					registry.addMapping("/**").allowedOrigins("http://localhost:8888").allowCredentials(true);
-				}
+				//if (env != null && env.equals("dev")) {
+				registry.addMapping("/**").allowedOrigins("http://www.nbamanager.win").allowCredentials(true);
+				//}
 			}
 		};
 	}
@@ -79,12 +79,12 @@ public class MyConfiguration extends WebMvcConfigurerAdapter {
 						}
 					}
 					if (!isLogin) {
-						if (env != null && env.equals("dev")) {
+						//if (env != null && env.equals("dev")) {
 							response.setHeader("Access-Control-Allow-Headers",
 									"Origin, No-Cache, X-Requested-With, If-Modified-Since, Pragma, Last-Modified, Cache-Control, Expires, Content-Type, X-E4M-With");
 							response.setHeader("Access-Control-Allow-Credentials", "true");
-							response.setHeader("Access-Control-Allow-Origin", "http://localhost:8888");
-						}
+							response.setHeader("Access-Control-Allow-Origin", "http://www.nbamanager.win");
+						//}
 
 						if (!request.getRequestURI().equals("/")) {
 							response.getWriter().write(JsonTool

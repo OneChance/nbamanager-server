@@ -4,13 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Resource;
-
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.zhstar.nbamanager.common.DateTool;
 import com.zhstar.nbamanager.common.NetMessage;
 import com.zhstar.nbamanager.player.entity.Player;
@@ -21,13 +18,14 @@ import com.zhstar.nbamanager.team.entity.TeamPlayer;
 
 @Service
 public class TeamService {
-	
+
 	public final int LOGS_IN_PAGE = 10;
 
 	/**
 	 * 
 	 * @param userId
-	 * @param queryOriPlayer 是否查询球员元数据
+	 * @param queryOriPlayer
+	 *            是否查询球员元数据
 	 * @return
 	 */
 	public Team getTeamByUser(Long userId, boolean queryOriPlayer) {
@@ -51,15 +49,15 @@ public class TeamService {
 		}
 		return team;
 	}
-	
+
 	public List<Long> getPlayerIdsToExclude(Long userId) {
 		Team team = teamRepository.findByUserId(userId);
 		List<Long> ids = getTeamPlayerIds(team);
-		if(ids.size()==0){
+		if (ids.size() == 0) {
 			ids.add(-1l);
 		}
 		return ids;
-	} 
+	}
 
 	public List<Long> getTeamPlayerIds(Long userId) {
 		Team team = teamRepository.findByUserId(userId);
@@ -73,9 +71,10 @@ public class TeamService {
 		}
 		return ids;
 	}
-	
-	public List<ContractLog> getContractLogs(Long userId,String searchName,int page){
-		List<ContractLog> logs = contractLogRepository.findByUserId(userId, searchName,new PageRequest(page,LOGS_IN_PAGE));
+
+	public List<ContractLog> getContractLogs(Long userId, String searchName, int page) {
+		List<ContractLog> logs = contractLogRepository.findByUserId(userId, searchName,
+				new PageRequest(page, LOGS_IN_PAGE));
 		return logs;
 	}
 
@@ -86,13 +85,13 @@ public class TeamService {
 		if (signPlayer == null) {
 			return new NetMessage(NetMessage.STATUS_PLAYER_NOT_EXIST, NetMessage.DANGER, null);
 		}
-		
+
 		Team team = getTeamByUser(userId, false);
-		
-		if(team.getMoney()<signPlayer.getSal()){
+
+		if (team.getMoney() < signPlayer.getSal()) {
 			return new NetMessage(NetMessage.STATUS_NOT_ENOUGH_MONEY, NetMessage.DANGER, null);
 		}
-		
+
 		List<TeamPlayer> players = team.getPlayers();
 		if (players.size() > 0) {
 			if (players.size() == 5) {
@@ -100,18 +99,18 @@ public class TeamService {
 			}
 
 			String checkRes = rosCheck(team, player);
-			
-			if (checkRes!=null) {
+
+			if (checkRes != null) {
 				return new NetMessage(checkRes, NetMessage.DANGER, null);
 			}
-		}		
+		}
 
 		TeamPlayer teamPlayer = new TeamPlayer(player.getId(), player.getPos(), signPlayer.getSal());
 		team.getPlayers().add(teamPlayer);
-		team.setMoney(team.getMoney()-signPlayer.getSal());
-		
+		team.setMoney(team.getMoney() - signPlayer.getSal());
+
 		teamRepository.save(team);
-		
+
 		ContractLog contractLog = new ContractLog();
 		contractLog.setDate(DateTool.getCurrentString());
 		contractLog.setMoney(signPlayer.getSal());
@@ -119,12 +118,12 @@ public class TeamService {
 		contractLog.setType(contractLog.SIGN);
 		contractLog.setPlayerName(signPlayer.getName());
 		contractLog.setUserId(userId);
-		
+
 		contractLogRepository.save(contractLog);
-		
+
 		return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS, null);
 	}
-	
+
 	@Transactional
 	public NetMessage breakPlayer(Long userId, Player player) throws Exception {
 		Player breakPlayer = playerRepository.findOne(player.getId());
@@ -132,25 +131,25 @@ public class TeamService {
 		if (breakPlayer == null) {
 			return new NetMessage(NetMessage.STATUS_PLAYER_NOT_EXIST, NetMessage.DANGER, null);
 		}
-		
+
 		Team team = getTeamByUser(userId, false);
 
 		List<TeamPlayer> players = team.getPlayers();
-		
-		if(players==null||players.size()==0){
+
+		if (players == null || players.size() == 0) {
 			return new NetMessage(NetMessage.STATUS_INVALID_OPERATION, NetMessage.DANGER, null);
-		}else{
-			for(int i=0;i<players.size();i++){				
-				if(players.get(i).getPlayerId().longValue()==player.getId().longValue()){
+		} else {
+			for (int i = 0; i < players.size(); i++) {
+				if (players.get(i).getPlayerId().longValue() == player.getId().longValue()) {
 					players.remove(i);
 					break;
 				}
 			}
 		}
 
-		int moneyAfterSign = team.getMoney()+breakPlayer.getSal();
+		int moneyAfterSign = team.getMoney() + breakPlayer.getSal();
 		team.setMoney(moneyAfterSign);
-		
+
 		ContractLog contractLog = new ContractLog();
 		contractLog.setDate(DateTool.getCurrentString());
 		contractLog.setMoney(breakPlayer.getSal());
@@ -158,49 +157,49 @@ public class TeamService {
 		contractLog.setPlayerName(breakPlayer.getName());
 		contractLog.setType(contractLog.BREAK);
 		contractLog.setUserId(userId);
-		
+
 		contractLogRepository.save(contractLog);
-		
+
 		return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS, moneyAfterSign);
 	}
-	
+
 	@Transactional
 	public NetMessage changePlayerPos(Long userId, Player player) throws Exception {
-		
+
 		Player sign = playerRepository.findOne(player.getId());
 
 		if (sign == null) {
 			return new NetMessage(NetMessage.STATUS_PLAYER_NOT_EXIST, NetMessage.DANGER, null);
 		}
-		
+
 		Team team = getTeamByUser(userId, false);
-		
+
 		String checkRes = rosCheck(team, player);
-		
-		if (checkRes!=null) {
+
+		if (checkRes != null) {
 			return new NetMessage(checkRes, NetMessage.DANGER, null);
 		}
-		
+
 		List<TeamPlayer> players = team.getPlayers();
-				
-		if(players==null||players.size()==0){
+
+		if (players == null || players.size() == 0) {
 			return new NetMessage(NetMessage.STATUS_INVALID_OPERATION, NetMessage.DANGER, null);
-		}else{
-			for(int i=0;i<players.size();i++){				
-				if(players.get(i).getPlayerId().longValue()==player.getId().longValue()){
+		} else {
+			for (int i = 0; i < players.size(); i++) {
+				if (players.get(i).getPlayerId().longValue() == player.getId().longValue()) {
 					players.get(i).setPos(player.getPos());
 					break;
 				}
 			}
 		}
-		
+
 		teamRepository.save(team);
-		
+
 		return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS, null);
 	}
-	
+
 	@Transactional
-	public NetMessage changeTeamName(Long userId,String name){
+	public NetMessage changeTeamName(Long userId, String name) {
 		teamRepository.updateName(userId, name);
 		return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS, null);
 	}
@@ -222,15 +221,15 @@ public class TeamService {
 		}
 
 		if (sign.getPos().equals("中锋")) {
-			if(posCount("\u4e2d\u950b",ros)>=1){
+			if (posCount("\u4e2d\u950b", ros) >= 1) {
 				return NetMessage.STATUS_C_FULL;
 			}
-		}else if (sign.getPos().equals("前锋")) {
-			if(posCount("\u524d\u950b",ros)>=2){
+		} else if (sign.getPos().equals("前锋")) {
+			if (posCount("\u524d\u950b", ros) >= 2) {
 				return NetMessage.STATUS_F_FULL;
 			}
-		}else if (sign.getPos().equals("后卫")) {
-			if(posCount("\u540e\u536b",ros)>=2){
+		} else if (sign.getPos().equals("后卫")) {
+			if (posCount("\u540e\u536b", ros) >= 2) {
 				return NetMessage.STATUS_G_FULL;
 			}
 		}

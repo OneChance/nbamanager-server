@@ -3,19 +3,17 @@ package com.zhstar.nbamanager.team.entity;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
-import org.hibernate.annotations.GenericGenerator;
 
 @Entity
 @Table(name = "team_player")
 public class TeamPlayer {
 
 	@Id
-	@GeneratedValue(generator = "paymentableGenerator")
-    @GenericGenerator(name = "paymentableGenerator", strategy = "increment")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	private Long playerId;
 	private String pos;

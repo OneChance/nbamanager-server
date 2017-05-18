@@ -112,7 +112,7 @@ public class AccountService {
 		
 		Team team = new Team();
 		team.setUserId(accountDb.getId());
-		team.setMoney(10000);
+		team.setMoney(9000);
 		team.setName(account.getName()+"的球队");
 		team.setArena(new Arena(account.getName()+"的球馆"));
 		team.setPlayers(new ArrayList<TeamPlayer>());

@@ -1,6 +1,7 @@
 package com.zhstar.nbamanager.team.service;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -82,6 +83,12 @@ public class TeamService {
 	public NetMessage signPlayer(Long userId, Player player) {
 		Player signPlayer = playerRepository.findOne(player.getId());
 
+		Calendar c = Calendar.getInstance();
+
+		if (c.get(Calendar.HOUR_OF_DAY) < 15) {
+			return new NetMessage(NetMessage.STATUS_INVALID_OPERATION, NetMessage.DANGER, null);
+		}
+
 		if (signPlayer == null) {
 			return new NetMessage(NetMessage.STATUS_PLAYER_NOT_EXIST, NetMessage.DANGER, null);
 		}
@@ -127,6 +134,12 @@ public class TeamService {
 	@Transactional
 	public NetMessage breakPlayer(Long userId, Player player) throws Exception {
 		Player breakPlayer = playerRepository.findOne(player.getId());
+
+		Calendar c = Calendar.getInstance();
+
+		if (c.get(Calendar.HOUR_OF_DAY) < 15) {
+			return new NetMessage(NetMessage.STATUS_INVALID_OPERATION, NetMessage.DANGER, null);
+		}
 
 		if (breakPlayer == null) {
 			return new NetMessage(NetMessage.STATUS_PLAYER_NOT_EXIST, NetMessage.DANGER, null);

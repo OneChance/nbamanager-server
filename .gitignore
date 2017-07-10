@@ -1,9 +1,10 @@
 .gradle
 /build/
-build/
 /bin/
 .classpath
 /.settings/
 /gradle/
 /src/main/resources/static/
 !favicon.ico
+.iml
+/.idea/

@@ -3,6 +3,7 @@ package com.zhstar.nbamanager.account.controller;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,18 +20,18 @@ public class AccountController {
     public NetMessage signIn(@RequestBody Account account, HttpServletRequest request, HttpServletResponse response) throws Exception {
         return accountService.signIn(account, request, response);
     }
-    
+
     @RequestMapping("/isLogin/")
     public NetMessage isLogin(HttpServletRequest request, HttpServletResponse response) throws Exception {
-    	return new NetMessage("", NetMessage.SUCCESS);
+        return new NetMessage("", NetMessage.SUCCESS);
     }
-    
+
     @RequestMapping("/signUp/")
     public NetMessage signUp(@RequestBody Account account, HttpServletRequest request, HttpServletResponse response) throws Exception {
         return accountService.signUp(account, request, response);
     }
-    
-    
+
+
     @RequestMapping("/signOut/")
     public NetMessage singOut(HttpServletRequest request, HttpServletResponse response) throws Exception {
         return accountService.signOut(request, response);

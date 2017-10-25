@@ -43,143 +43,149 @@ public class Schedules {
     @Scheduled(cron = "0 40 14 ? * *")
     public void getWebData() throws Exception {
         if (fetch) {
-            System.out.println("fetch game data begin...");
+            while (true) {
+                try {
+                    System.out.println("fetch game data begin...");
 
-            String playerNotExist = "";
+                    String playerNotExist = "";
 
-            String gamesUrl = "http://nba.sports.sina.com.cn/match_result.php?day=0&years="
-                    + DateTool.getNowYear() + "&months=" + DateTool.getNowMonthString() + "&teams=";
+                    String gamesUrl = "http://nba.sports.sina.com.cn/match_result.php?day=0&years="
+                            + DateTool.getNowYear() + "&months=" + DateTool.getNowMonthString() + "&teams=";
 
-            Document doc = Jsoup.connect(gamesUrl)
-                    .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.84 Safari/535.11 LBBROWSER")
-                    .header("Referer", "http://nba.sports.sina.com.cn/match_result.php")
-                    .timeout(TIMEOUT).get();
-            Elements trs = doc.select("#table980middle tr");
+                    Document doc = Jsoup.connect(gamesUrl)
+                            .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.84 Safari/535.11 LBBROWSER")
+                            .header("Referer", "http://nba.sports.sina.com.cn/match_result.php")
+                            .timeout(TIMEOUT).get();
+                    Elements trs = doc.select("#table980middle tr");
 
-            String today = DateTool.getCurrentStringNoSplit();
-            String gameDate = DateTool.getCurrentString();
-            List<Statistic> statistics = new ArrayList<Statistic>();
-            List<Player> dbPlayers = playerRepository.findAll();
-            List<Long> playerIds = new ArrayList<Long>();
-            List<Long> updatePlayerIds = new ArrayList<Long>();
+                    String today = DateTool.getCurrentStringNoSplit();
+                    String gameDate = DateTool.getCurrentString();
+                    List<Statistic> statistics = new ArrayList<Statistic>();
+                    List<Player> dbPlayers = playerRepository.findAll();
+                    List<Long> playerIds = new ArrayList<Long>();
+                    List<Long> updatePlayerIds = new ArrayList<Long>();
 
-            for (Player player : dbPlayers) {
-                playerIds.add(player.getPlayerId());
-            }
+                    for (Player player : dbPlayers) {
+                        playerIds.add(player.getPlayerId());
+                    }
 
-            for (Element tr : trs) {
-                Elements tds = tr.select("td");
+                    for (Element tr : trs) {
+                        Elements tds = tr.select("td");
 
-                String href = tds.get(8).select("a").attr("href");
+                        String href = tds.get(8).select("a").attr("href");
 
-                if (href == null || href.equals("") || !href.contains("look_scores.php")) {
+                        if (href == null || href.equals("") || !href.contains("look_scores.php")) {
+                            continue;
+                        }
+
+                        String id = getIdFromUrl(href);
+
+                        if (id.startsWith(today)) {
+
+                            Document oneGame = Jsoup.connect("http://nba.sports.sina.com.cn/" + href)
+                                    .header("Referer", gamesUrl)
+                                    .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.84 Safari/535.11 LBBROWSER")
+                                    .timeout(TIMEOUT)
+                                    .get();
+                            Elements allTr = oneGame.select("#main tr");
+
+                            for (Element onePlayer : allTr) {
+                                Elements gameDatas = onePlayer.select("td");
+
+                                String playerHref = gameDatas.get(0).select("a").attr("href");
+
+                                if (playerHref == null || playerHref.equals("") || !playerHref.contains("player_one.php")) {
+                                    continue;
+                                }
+
+                                String playerId = getIdFromUrl(playerHref);
+                                String playerName = gameDatas.get(0).select("a").html();
+
+                                if (playerId == null || playerId.equals("")) {
+                                    continue;
+                                }
+
+                                if (!playerIds.contains(Long.parseLong(playerId))) {
+                                    if (!playerNotExist.contains("," + playerId + ",")) {
+                                        playerNotExist = playerNotExist + playerId + ",";
+                                    }
+                                } else {
+                                    updatePlayerIds.add(Long.parseLong(playerId));
+                                }
+
+                                if (gameDatas.size() == 14) {
+                                    Statistic statistic = new Statistic();
+                                    statistic.setPlayerId(Long.parseLong(playerId));
+                                    statistic.setPlayerName(playerName);
+                                    statistic.setMin(Integer.parseInt(gameDatas.get(1).html()));
+                                    statistic.setFg(gameDatas.get(2).html());
+                                    statistic.setP3(gameDatas.get(3).html());
+                                    statistic.setFt(gameDatas.get(4).html());
+                                    statistic.setOreb(Integer.parseInt(gameDatas.get(5).html()));
+                                    statistic.setDreb(Integer.parseInt(gameDatas.get(6).html()));
+                                    statistic.setReb(Integer.parseInt(gameDatas.get(7).html()));
+                                    statistic.setAst(Integer.parseInt(gameDatas.get(8).html()));
+                                    statistic.setStl(Integer.parseInt(gameDatas.get(9).html()));
+                                    statistic.setBlk(Integer.parseInt(gameDatas.get(10).html()));
+                                    statistic.setFa(Integer.parseInt(gameDatas.get(11).html()));
+                                    statistic.setFo(Integer.parseInt(gameDatas.get(12).html()));
+                                    statistic.setPts(Integer.parseInt(gameDatas.get(13).html()));
+                                    statistic.setGameDate(gameDate);
+
+                                    calEV(statistic);
+                                    statistics.add(statistic);
+                                } else if (gameDatas.size() == 2) {
+                                    // 显示没有上场的球员 无统计数据
+                                    Statistic statistic = new Statistic();
+                                    statistic.setPlayerId(Long.parseLong(playerId));
+                                    statistic.setPlayerName(playerName);
+                                    statistic.setGameDate(gameDate);
+                                    statistic.setEv(-5);
+                                    statistics.add(statistic);
+                                }
+                            }
+                        }
+                    }
+
+                    System.out.println("fetch game data complete... size:" + statistics.size());
+
+                    if (statistics.size() > 0) {
+                        // 更新球员工资
+                        List<Player> updatePlayers = playerRepository.findByPlayerIdIn(updatePlayerIds);
+                        if (updatePlayers != null && updatePlayers.size() > 0) {
+                            for (Player player : updatePlayers) {
+                                for (Statistic statistic : statistics) {
+                                    if (statistic.getPlayerId().longValue() == player.getPlayerId().longValue()) {
+                                        player.setSal(player.getSal() + statistic.getEv());
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        playerRepository.save(updatePlayers);
+                        statisticRepository.save(statistics);
+                    }
+
+                    if (!playerNotExist.equals("")) {
+                        statisticRepository.recordPlayersNotExist(playerNotExist);
+                    }
+                    System.out.println("database updated...");
+
+                    teamRepository.closeMoney();
+                    System.out.println("money closed...");
+
+                    break;
+                } catch (Exception e) {
+                    //出现异常,休眠5分钟后再次尝试
+                    Thread.sleep(300000);
+                    System.out.println("try again...");
                     continue;
                 }
-
-                String id = getIdFromUrl(href);
-
-                if (id.startsWith(today)) {
-
-                    Document oneGame = Jsoup.connect("http://nba.sports.sina.com.cn/" + href)
-                            .header("Referer", gamesUrl)
-                            .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.84 Safari/535.11 LBBROWSER")
-                            .timeout(TIMEOUT)
-                            .get();
-                    Elements allTr = oneGame.select("#main tr");
-
-                    for (Element onePlayer : allTr) {
-                        Elements gameDatas = onePlayer.select("td");
-
-                        String playerHref = gameDatas.get(0).select("a").attr("href");
-
-                        if (playerHref == null || playerHref.equals("") || !playerHref.contains("player_one.php")) {
-                            continue;
-                        }
-
-                        String playerId = getIdFromUrl(playerHref);
-                        String playerName = gameDatas.get(0).select("a").html();
-
-                        if (playerId == null || playerId.equals("")) {
-                            continue;
-                        }
-
-                        if (!playerIds.contains(Long.parseLong(playerId))) {
-                            if (!playerNotExist.contains("," + playerId + ",")) {
-                                playerNotExist = playerNotExist + playerId + ",";
-                            }
-                        } else {
-                            updatePlayerIds.add(Long.parseLong(playerId));
-                        }
-
-                        if (gameDatas.size() == 14) {
-                            Statistic statistic = new Statistic();
-                            statistic.setPlayerId(Long.parseLong(playerId));
-                            statistic.setPlayerName(playerName);
-                            statistic.setMin(Integer.parseInt(gameDatas.get(1).html()));
-                            statistic.setFg(gameDatas.get(2).html());
-                            statistic.setP3(gameDatas.get(3).html());
-                            statistic.setFt(gameDatas.get(4).html());
-                            statistic.setOreb(Integer.parseInt(gameDatas.get(5).html()));
-                            statistic.setDreb(Integer.parseInt(gameDatas.get(6).html()));
-                            statistic.setReb(Integer.parseInt(gameDatas.get(7).html()));
-                            statistic.setAst(Integer.parseInt(gameDatas.get(8).html()));
-                            statistic.setStl(Integer.parseInt(gameDatas.get(9).html()));
-                            statistic.setBlk(Integer.parseInt(gameDatas.get(10).html()));
-                            statistic.setFa(Integer.parseInt(gameDatas.get(11).html()));
-                            statistic.setFo(Integer.parseInt(gameDatas.get(12).html()));
-                            statistic.setPts(Integer.parseInt(gameDatas.get(13).html()));
-                            statistic.setGameDate(gameDate);
-
-                            calEV(statistic);
-                            statistics.add(statistic);
-                        } else if (gameDatas.size() == 2) {
-                            // 显示没有上场的球员 无统计数据
-                            Statistic statistic = new Statistic();
-                            statistic.setPlayerId(Long.parseLong(playerId));
-                            statistic.setPlayerName(playerName);
-                            statistic.setGameDate(gameDate);
-                            statistic.setEv(-5);
-                            statistics.add(statistic);
-                        }
-                    }
-                }
             }
-
-            System.out.println("fetch game data complete... size:" + statistics.size());
-
-            if (statistics.size() > 0) {
-                // 更新球员工资
-                List<Player> updatePlayers = playerRepository.findByPlayerIdIn(updatePlayerIds);
-                if (updatePlayers != null && updatePlayers.size() > 0) {
-                    for (Player player : updatePlayers) {
-                        for (Statistic statistic : statistics) {
-                            if (statistic.getPlayerId().longValue() == player.getPlayerId().longValue()) {
-                                player.setSal(player.getSal() + statistic.getEv());
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                playerRepository.save(updatePlayers);
-                statisticRepository.save(statistics);
-            }
-
-            if (!playerNotExist.equals("")) {
-                statisticRepository.recordPlayersNotExist(playerNotExist);
-            }
-            System.out.println("database updated...");
         }
     }
 
-    @Transactional
-    @Scheduled(cron = "0 50 14 ? * *")//0 50 14 ? * *
-    public void closeTodayMoney() throws Exception {
-        if (fetch) {
-            teamRepository.closeMoney();
-            System.out.println("money closed...");
-        }
-    }
 
     @Transactional
     @Scheduled(cron = "59 59 23 ? * *")//59 59 23 ? * *

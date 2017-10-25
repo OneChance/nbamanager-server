@@ -17,6 +17,6 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
     @Query("select p from Player p where p.id in ?1 and p.status = 0")
     List<Player> findByPlayerIdIn(List<Long> ids);
 
-    @Query(value = "select a.* from player_data a join game_data b on a.id = b.player_id where game_date = DATE_FORMAT(NOW(),'%Y-%m-%d') order by convert(ev,SIGNED) desc", nativeQuery = true)
+    @Query(value = "select a.* from player_data a join game_data b on a.id = b.player_id where game_date = DATE_FORMAT(NOW(),'%Y-%m-%d') order by convert(ev,SIGNED) desc limit 10", nativeQuery = true)
     List<Player> getEvRankToday();
 }

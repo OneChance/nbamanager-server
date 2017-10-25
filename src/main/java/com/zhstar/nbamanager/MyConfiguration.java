@@ -38,8 +38,10 @@ public class MyConfiguration extends WebMvcConfigurerAdapter {
         return new WebMvcConfigurerAdapter() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                //http://www.nbamanager.win http://localhost:8888
-                registry.addMapping("/**").allowedOrigins("http://www.nbamanager.win").allowCredentials(true);
+                registry.addMapping("/**")
+                        .allowedOrigins("http://www.nbamanager.win")
+                        //.allowedOrigins("http://localhost:8888")
+                        .allowCredentials(true);
             }
         };
     }
@@ -56,6 +58,7 @@ public class MyConfiguration extends WebMvcConfigurerAdapter {
                         "Origin, No-Cache, X-Requested-With, If-Modified-Since, Pragma, Last-Modified, Cache-Control, Expires, Content-Type, X-E4M-With");
                 response.setHeader("Access-Control-Allow-Credentials", "true");
                 response.setHeader("Access-Control-Allow-Origin", "http://www.nbamanager.win");
+                //response.setHeader("Access-Control-Allow-Origin", "http://localhost:8888");
 
                 if (request.getRequestURL().indexOf("/signIn/") == -1
                         && request.getRequestURL().indexOf("/signOut/") == -1

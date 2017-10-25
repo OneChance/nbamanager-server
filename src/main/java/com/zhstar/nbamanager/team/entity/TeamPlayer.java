@@ -12,94 +12,103 @@ import javax.persistence.Transient;
 @Table(name = "team_player")
 public class TeamPlayer {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
-	private Long playerId;
-	private String pos;
-	private Integer signMoney;
-	
-	@Transient
-	private String name;
-	@Transient
-	private String ablePos;
-	@Transient
-	private int sal;
-	
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Long playerId;
+    private String pos;
+    private Integer signMoney;
+    private String nextTradeableDate;
+
+    @Transient
+    private String name;
+    @Transient
+    private String ablePos;
+    @Transient
+    private int sal;
+
     @Column(name = "team_id")
-	private Long teamId;
-	
-	public TeamPlayer(){
-		
-	}
-	
-	public TeamPlayer(Long playerId,String pos,Integer signMoney){
-		this.playerId = playerId;
-		this.pos = pos;
-		this.signMoney = signMoney;
-	}
+    private Long teamId;
 
-	public Long getId() {
-		return id;
-	}
+    public TeamPlayer() {
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    }
 
-	public Long getPlayerId() {
-		return playerId;
-	}
+    public TeamPlayer(Long playerId, String pos, Integer signMoney) {
+        this.playerId = playerId;
+        this.pos = pos;
+        this.signMoney = signMoney;
+    }
 
-	public void setPlayerId(Long playerId) {
-		this.playerId = playerId;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public String getPos() {
-		return pos;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public void setPos(String pos) {
-		this.pos = pos;
-	}
+    public Long getPlayerId() {
+        return playerId;
+    }
 
-	public Integer getSignMoney() {
-		return signMoney;
-	}
+    public void setPlayerId(Long playerId) {
+        this.playerId = playerId;
+    }
 
-	public void setSignMoney(Integer signMoney) {
-		this.signMoney = signMoney;
-	}
-	
-	public Long getTeamId() {
-		return teamId;
-	}
+    public String getPos() {
+        return pos;
+    }
 
-	public void setTeamId(Long teamId) {
-		this.teamId = teamId;
-	}
+    public void setPos(String pos) {
+        this.pos = pos;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public Integer getSignMoney() {
+        return signMoney;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setSignMoney(Integer signMoney) {
+        this.signMoney = signMoney;
+    }
 
-	public String getAblePos() {
-		return ablePos;
-	}
+    public Long getTeamId() {
+        return teamId;
+    }
 
-	public void setAblePos(String ablePos) {
-		this.ablePos = ablePos;
-	}
+    public void setTeamId(Long teamId) {
+        this.teamId = teamId;
+    }
 
-	public int getSal() {
-		return sal;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setSal(int sal) {
-		this.sal = sal;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAblePos() {
+        return ablePos;
+    }
+
+    public void setAblePos(String ablePos) {
+        this.ablePos = ablePos;
+    }
+
+    public int getSal() {
+        return sal;
+    }
+
+    public void setSal(int sal) {
+        this.sal = sal;
+    }
+
+    public String getNextTradeableDate() {
+        return nextTradeableDate;
+    }
+
+    public void setNextTradeableDate(String nextTradeableDate) {
+        this.nextTradeableDate = nextTradeableDate;
+    }
 }

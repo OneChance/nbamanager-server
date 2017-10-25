@@ -20,17 +20,17 @@ import com.zhstar.nbamanager.player.entity.Player;
 public class MarketController {
 
 	@RequestMapping("/getMarketPlayer/{page}/")
-    public NetMessage getMarketPlayer(@PathVariable("page") int page,HttpServletRequest request, HttpServletResponse response) throws Exception {  	
+	public NetMessage getMarketPlayer(@PathVariable("page") int page,HttpServletRequest request, HttpServletResponse response) throws Exception {
 		Account account = accountService.getLoginAccount(request, response);
 		String searchName = request.getParameter("searchName");
 		String searchPos = request.getParameter("searchPos");
 		List<Player> players = new ArrayList<Player>();
-		
+
 		players = marketService.getMarketPlayer(account,searchName,searchPos, page);
-		
+
 		return new NetMessage(NetMessage.STATUS_OK, NetMessage.SUCCESS,players);
-    } 
-	
+	}
+
 	@Resource
 	MarketService marketService;
 	@Resource

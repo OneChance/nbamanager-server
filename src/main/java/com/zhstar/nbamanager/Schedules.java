@@ -54,7 +54,7 @@ public class Schedules {
 
                     Document doc = Jsoup.connect(gamesUrl)
                             .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.84 Safari/535.11 LBBROWSER")
-                            .header("Referer", "http://nba.sports.sina.com.cn/match_result.php")
+                            .referrer("http://nba.sports.sina.com.cn/match_result.php")
                             .timeout(TIMEOUT).get();
                     Elements trs = doc.select("#table980middle tr");
 
@@ -83,7 +83,7 @@ public class Schedules {
                         if (id.startsWith(today)) {
 
                             Document oneGame = Jsoup.connect("http://nba.sports.sina.com.cn/" + href)
-                                    .header("Referer", gamesUrl)
+                                    .referrer(gamesUrl)
                                     .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.84 Safari/535.11 LBBROWSER")
                                     .timeout(TIMEOUT)
                                     .get();
@@ -179,6 +179,7 @@ public class Schedules {
                 } catch (Exception e) {
                     //出现异常,休眠5分钟后再次尝试
                     Thread.sleep(300000);
+                    e.printStackTrace();
                     System.out.println("try again...");
                     continue;
                 }

@@ -1,6 +1,7 @@
 package com.zhstar.nbamanager;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
@@ -8,11 +9,18 @@ import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.annotation.Resource;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.jsoup.Jsoup;
+import org.jsoup.helper.DataUtil;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -48,102 +56,83 @@ public class Schedules {
                     System.out.println("fetch game data begin...");
 
                     String playerNotExist = "";
-
-                    String gamesUrl = "http://nba.sports.sina.com.cn/match_result.php?day=0&years="
-                            + DateTool.getNowYear() + "&months=" + DateTool.getNowMonthString() + "&teams=";
-
-                    Document doc = Jsoup.connect(gamesUrl)
-                            .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.84 Safari/535.11 LBBROWSER")
-                            .referrer("http://nba.sports.sina.com.cn/match_result.php")
-                            .timeout(TIMEOUT).get();
-                    Elements trs = doc.select("#table980middle tr");
-
-                    String today = DateTool.getCurrentStringNoSplit();
-                    String gameDate = DateTool.getCurrentString();
-                    List<Statistic> statistics = new ArrayList<Statistic>();
+                    List<Player> notExist = new ArrayList<>();
+                    List<Statistic> statistics = new ArrayList<>();
                     List<Player> dbPlayers = playerRepository.findAll();
-                    List<Long> playerIds = new ArrayList<Long>();
-                    List<Long> updatePlayerIds = new ArrayList<Long>();
+                    List<String> playerIds = new ArrayList<>();
+                    List<String> updatePlayerIds = new ArrayList<>();
+                    String fetchDate = DateTool.getCurrentString();
+
+                    JsonParser parse = new JsonParser();
+
+                    String matchesJsonString = getJsonContent("&s=schedule&a=date_span&date=" + fetchDate + "&span=6", "https://slamdunk.sports.sina.com.cn/match");
+
+                    JsonObject matchesJson = (JsonObject) parse.parse(matchesJsonString);
+
+                    JsonArray matches = getData(matchesJson).get("matchs").getAsJsonArray();
+
 
                     for (Player player : dbPlayers) {
-                        playerIds.add(player.getPlayerId());
+                        playerIds.add(player.getUuid());
                     }
 
-                    for (Element tr : trs) {
-                        Elements tds = tr.select("td");
+                    for (JsonElement match : matches) {
+                        JsonObject matchObject = match.getAsJsonObject();
+                        String matchId = matchObject.get("mid").getAsString();
+                        String gameDate = matchObject.get("date").getAsString();
 
-                        String href = tds.get(8).select("a").attr("href");
-
-                        if (href == null || href.equals("") || !href.contains("look_scores.php")) {
+                        if (!fetchDate.equals(gameDate)) {
                             continue;
                         }
 
-                        String id = getIdFromUrl(href);
+                        String playerDataJsonString = getJsonContent("&p=radar&s=summary&a=game_player&mid=" + matchId, "https://slamdunk.sports.sina.com.cn/match/stats?mid=" + matchId);
 
-                        if (id.startsWith(today)) {
+                        JsonObject playerDataJson = (JsonObject) parse.parse(playerDataJsonString);
 
-                            Document oneGame = Jsoup.connect("http://nba.sports.sina.com.cn/" + href)
-                                    .referrer(gamesUrl)
-                                    .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.84 Safari/535.11 LBBROWSER")
-                                    .timeout(TIMEOUT)
-                                    .get();
-                            Elements allTr = oneGame.select("#main tr");
+                        JsonArray playerDatas = getData(playerDataJson)
+                                .get("home").getAsJsonObject()
+                                .get("players").getAsJsonArray();
 
-                            for (Element onePlayer : allTr) {
-                                Elements gameDatas = onePlayer.select("td");
+                        JsonArray awayPlayerDatas = getData(playerDataJson)
+                                .get("away").getAsJsonObject()
+                                .get("players").getAsJsonArray();
 
-                                String playerHref = gameDatas.get(0).select("a").attr("href");
+                        playerDatas.addAll(awayPlayerDatas);
 
-                                if (playerHref == null || playerHref.equals("") || !playerHref.contains("player_one.php")) {
-                                    continue;
+                        for (JsonElement playerData : playerDatas) {
+                            Statistic statistic = new Statistic();
+                            JsonObject playerDataObject = playerData.getAsJsonObject();
+                            String min = playerDataObject.get("minutes").getAsString().split(":")[0];
+                            String uuid = playerDataObject.get("pid").getAsString();
+
+                            if (!playerIds.contains(uuid)) {
+                                if (!playerNotExist.contains("," + uuid + ",")) {
+                                    playerNotExist = playerNotExist + uuid + ",";
                                 }
-
-                                String playerId = getIdFromUrl(playerHref);
-                                String playerName = gameDatas.get(0).select("a").html();
-
-                                if (playerId == null || playerId.equals("")) {
-                                    continue;
-                                }
-
-                                if (!playerIds.contains(Long.parseLong(playerId))) {
-                                    if (!playerNotExist.contains("," + playerId + ",")) {
-                                        playerNotExist = playerNotExist + playerId + ",";
-                                    }
-                                } else {
-                                    updatePlayerIds.add(Long.parseLong(playerId));
-                                }
-
-                                if (gameDatas.size() == 14) {
-                                    Statistic statistic = new Statistic();
-                                    statistic.setPlayerId(Long.parseLong(playerId));
-                                    statistic.setPlayerName(playerName);
-                                    statistic.setMin(Integer.parseInt(gameDatas.get(1).html()));
-                                    statistic.setFg(gameDatas.get(2).html());
-                                    statistic.setP3(gameDatas.get(3).html());
-                                    statistic.setFt(gameDatas.get(4).html());
-                                    statistic.setOreb(Integer.parseInt(gameDatas.get(5).html()));
-                                    statistic.setDreb(Integer.parseInt(gameDatas.get(6).html()));
-                                    statistic.setReb(Integer.parseInt(gameDatas.get(7).html()));
-                                    statistic.setAst(Integer.parseInt(gameDatas.get(8).html()));
-                                    statistic.setStl(Integer.parseInt(gameDatas.get(9).html()));
-                                    statistic.setBlk(Integer.parseInt(gameDatas.get(10).html()));
-                                    statistic.setFa(Integer.parseInt(gameDatas.get(11).html()));
-                                    statistic.setFo(Integer.parseInt(gameDatas.get(12).html()));
-                                    statistic.setPts(Integer.parseInt(gameDatas.get(13).html()));
-                                    statistic.setGameDate(gameDate);
-
-                                    calEV(statistic);
-                                    statistics.add(statistic);
-                                } else if (gameDatas.size() == 2) {
-                                    // 显示没有上场的球员 无统计数据
-                                    Statistic statistic = new Statistic();
-                                    statistic.setPlayerId(Long.parseLong(playerId));
-                                    statistic.setPlayerName(playerName);
-                                    statistic.setGameDate(gameDate);
-                                    statistic.setEv(-5);
-                                    statistics.add(statistic);
-                                }
+                                Player needAdd = getPlayerByUUID(uuid);
+                                notExist.add(needAdd);
+                            } else {
+                                updatePlayerIds.add(uuid);
                             }
+
+                            statistic.setUuid(uuid);
+                            statistic.setGameDate(gameDate);
+                            statistic.setMin(min);
+                            statistic.setFg(playerDataObject.get("field_goals_made").getAsString() + "-" + playerDataObject.get("field_goals_att"));
+                            statistic.setP3(playerDataObject.get("three_points_made").getAsString() + "-" + playerDataObject.get("three_points_att"));
+                            statistic.setFt(playerDataObject.get("free_throws_made").getAsString() + "-" + playerDataObject.get("free_throws_att"));
+                            statistic.setOreb(playerDataObject.get("offensive_rebounds").getAsString());
+                            statistic.setDreb(playerDataObject.get("defensive_rebounds").getAsString());
+                            statistic.setReb(playerDataObject.get("rebounds").getAsString());
+                            statistic.setAst(playerDataObject.get("assists").getAsString());
+                            statistic.setStl(playerDataObject.get("steals").getAsString());
+                            statistic.setBlk(playerDataObject.get("blocks").getAsString());
+                            statistic.setFa(playerDataObject.get("turnovers").getAsString());
+                            statistic.setFo(playerDataObject.get("personal_fouls").getAsString());
+                            statistic.setPts(playerDataObject.get("points").getAsString());
+                            calEV(statistic);
+
+                            statistics.add(statistic);
                         }
                     }
 
@@ -155,8 +144,8 @@ public class Schedules {
                         if (updatePlayers != null && updatePlayers.size() > 0) {
                             for (Player player : updatePlayers) {
                                 for (Statistic statistic : statistics) {
-                                    if (statistic.getPlayerId().longValue() == player.getPlayerId().longValue()) {
-                                        player.setSal(player.getSal() + statistic.getEv());
+                                    if (statistic.getUuid().equals(player.getUuid())) {
+                                        player.setSal(calSal(player.getSal(), statistic.getEv()));
                                         break;
                                     }
                                 }
@@ -175,13 +164,17 @@ public class Schedules {
                     teamRepository.closeMoney();
                     System.out.println("money closed...");
 
+                    //添加不存在的球员
+                    if (notExist.size() > 0) {
+                        playerRepository.save(notExist);
+                    }
+
                     break;
                 } catch (Exception e) {
                     //出现异常,休眠5分钟后再次尝试
                     Thread.sleep(300000);
                     e.printStackTrace();
                     System.out.println("try again...");
-                    continue;
                 }
             }
         }
@@ -190,9 +183,13 @@ public class Schedules {
 
     @Transactional
     @Scheduled(cron = "59 59 23 ? * *")//59 59 23 ? * *
-    public void clearTeamOperatingData() throws Exception {
+    public void clearTeamOperatingData() {
         teamRepository.clearTeamOperatingData();
         System.out.println("operating data clear...");
+    }
+
+    private int calSal(int old, String ev) {
+        return new BigDecimal(old).add(new BigDecimal(ev)).intValue();
     }
 
     private void calEV(Statistic statistic) {
@@ -213,17 +210,63 @@ public class Schedules {
                 .add(steal.multiply(new BigDecimal(bonus))).add(block.multiply(new BigDecimal(bonus)))
                 .subtract(shootOut).add(shootIn).subtract(throwOut).add(throwIn).subtract(fault).floatValue());
 
-        if (statistic.getMin() == 0) {
+        if (statistic.getMin().equals("00")) {
             ev = -5;
         }
 
-        statistic.setEv(ev);
+        statistic.setEv(String.valueOf(ev));
     }
 
-    public String getIdFromUrl(String url) {
-        int start = url.indexOf("=") + 1;
-        String id = url.substring(start, url.length());
-        return id;
+    public Player getPlayerByUUID(String uuid) throws IOException {
+        JsonParser parse = new JsonParser();
+        String playerInfoJsonString = getJsonContent("&p=radar&s=player&a=info&pid=" + uuid, "https://slamdunk.sports.sina.com.cn/roster");
+        JsonObject playerInfoJson = (JsonObject) parse.parse(playerInfoJsonString);
+        JsonObject playerObject = getData(playerInfoJson);
+        Player player = new Player();
+        player.setUuid(uuid);
+        player.setName((playerObject.get("first_name_cn").getAsString() + "·" + playerObject.get("last_name_cn").getAsString()).replaceAll("-", "·"));
+        player.setNameEn((playerObject.get("first_name").getAsString() + "·" + playerObject.get("last_name").getAsString()).replaceAll("-", "·"));
+        player.setPos(getPosFromInfo(playerObject.get("primary_position").getAsString()));
+        player.setSal(1500);
+        player.setStatus(0);
+        return player;
+    }
+
+    private static String getJsonContent(String params, String referrer) throws IOException {
+        Long reqTime = new Date().getTime();
+        String jqueryCallBackName = "jQuery111306562200843946073_" + reqTime;
+
+        Document doc = Jsoup
+                .connect("https://slamdunk.sports.sina.com.cn/api?p=radar&callback=" + jqueryCallBackName + params + "&_=" + (reqTime + 1))
+                .userAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/63.0.3239.84 Chrome/63.0.3239.84 Safari/537.36")
+                .ignoreContentType(true)
+                .referrer(referrer)
+                .timeout(TIMEOUT).get();
+
+        return doc.body().html().replace("try{" + jqueryCallBackName + "(", "")
+                .replace(");}catch(e){};", "");
+    }
+
+    private static JsonObject getData(JsonObject resultObject) {
+        return resultObject.get("result").getAsJsonObject()
+                .get("data").getAsJsonObject();
+    }
+
+    private String getPosFromInfo(String playerInfo) {
+        String pos = "";
+        if (playerInfo.indexOf("中锋") > 0) {
+            pos = pos + "中锋/";
+        }
+        if (playerInfo.indexOf("前锋") > 0) {
+            pos = pos + "前锋/";
+        }
+        if (playerInfo.indexOf("后卫") > 0) {
+            pos = pos + "后卫/";
+        }
+        if (pos.endsWith("/")) {
+            pos = pos.substring(0, pos.length() - 1);
+        }
+        return pos;
     }
 
     @Resource

@@ -22,7 +22,7 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
 
     @Modifying
     @Query(value = "update team set " +
-            "earn_today = if((select count(*) from team_player where team_id = team.id)<5,0,(SELECT ifnull(sum(ev),0) ev FROM nba_game.game_data where player_id in (select player_id from team_player where team_id = team.id) and game_date = DATE_FORMAT(NOW(),'%Y-%m-%d')))," +
+            "earn_today = if((select count(*) from team_player where team_id = team.id)<5,0,(SELECT ifnull(sum(ev),0) ev FROM nba_game.game_data where uuid in (select uuid from team_player where team_id = team.id) and game_date = DATE_FORMAT(NOW(),'%Y-%m-%d')))," +
             "cost_today = ifnull((select ceil(sum(sign_money/" + SEASON_DAYS + ")) from team_player where team_id = team.id),0)," +
             "money = money + earn_today - cost_today," +
             "ev=ifnull(ev,0) + earn_today", nativeQuery = true)

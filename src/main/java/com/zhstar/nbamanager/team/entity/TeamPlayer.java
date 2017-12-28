@@ -19,6 +19,7 @@ public class TeamPlayer {
     private String pos;
     private Integer signMoney;
     private String nextTradeableDate;
+    private String uuid;
 
     @Transient
     private String name;
@@ -34,8 +35,8 @@ public class TeamPlayer {
 
     }
 
-    public TeamPlayer(Long playerId, String pos, Integer signMoney) {
-        this.playerId = playerId;
+    public TeamPlayer(String uuid, String pos, Integer signMoney) {
+        this.uuid = uuid;
         this.pos = pos;
         this.signMoney = signMoney;
     }
@@ -110,5 +111,13 @@ public class TeamPlayer {
 
     public void setNextTradeableDate(String nextTradeableDate) {
         this.nextTradeableDate = nextTradeableDate;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 }

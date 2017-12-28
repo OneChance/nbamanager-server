@@ -1,13 +1,13 @@
 buildscript {
-	ext {
-		springBootVersion = '1.5.2.RELEASE'
-	}
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-	}
+    ext {
+        springBootVersion = '1.5.2.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
 }
 
 apply plugin: 'java'
@@ -18,15 +18,16 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 
 dependencies {
-	compile('org.springframework.boot:spring-boot-starter-data-jpa')
-	compile('org.springframework.boot:spring-boot-starter-data-rest')
-	compile('org.springframework.boot:spring-boot-starter-web')
-	compile('org.jsoup:jsoup:1.5.2')
-	compile('com.fasterxml.jackson.core:jackson-databind:2.8.4')
+    compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    compile('org.springframework.boot:spring-boot-starter-data-rest')
+    compile('org.springframework.boot:spring-boot-starter-web')
+    compile('org.jsoup:jsoup:1.8.1')
+    compile('com.google.code.gson:gson:2.3.1')
+    compile('com.fasterxml.jackson.core:jackson-databind:2.8.4')
     runtime('mysql:mysql-connector-java')
 }

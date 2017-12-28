@@ -40,7 +40,7 @@ public class TeamService {
                 List<Player> players = playerRepository.findAll(getTeamPlayerIds(team));
                 for (TeamPlayer tPlayer : team.getPlayers()) {
                     for (Player player : players) {
-                        if (tPlayer.getPlayerId().longValue() == player.getId().longValue()) {
+                        if (tPlayer.getUuid().equals(player.getUuid())) {
                             tPlayer.setName(player.getName());
                             tPlayer.setAblePos(player.getPos());
                             tPlayer.setSal(player.getSal());
@@ -53,24 +53,24 @@ public class TeamService {
         return team;
     }
 
-    public List<Long> getPlayerIdsToExclude(Long userId) {
+    public List<String> getPlayerIdsToExclude(Long userId) {
         Team team = teamRepository.findByUserId(userId);
-        List<Long> ids = getTeamPlayerIds(team);
+        List<String> ids = getTeamPlayerIds(team);
         if (ids.size() == 0) {
-            ids.add(-1l);
+            ids.add("-");
         }
         return ids;
     }
 
-    public List<Long> getTeamPlayerIds(Long userId) {
+    public List<String> getTeamPlayerIds(Long userId) {
         Team team = teamRepository.findByUserId(userId);
         return getTeamPlayerIds(team);
     }
 
-    public List<Long> getTeamPlayerIds(Team team) {
-        List<Long> ids = new ArrayList<Long>();
+    public List<String> getTeamPlayerIds(Team team) {
+        List<String> ids = new ArrayList<>();
         for (TeamPlayer player : team.getPlayers()) {
-            ids.add(player.getPlayerId());
+            ids.add(player.getUuid());
         }
         return ids;
     }
@@ -83,7 +83,7 @@ public class TeamService {
 
     @Transactional
     public NetMessage signPlayer(Long userId, Player player) {
-        Player signPlayer = playerRepository.findOne(player.getId());
+        Player signPlayer = playerRepository.findOne(player.getUuid());
 
         if (DateTool.getHour() < DAY_TRADE_TIME) {
             return new NetMessage(NetMessage.STATUS_INVALID_OPERATION, NetMessage.DANGER, null);
@@ -112,7 +112,7 @@ public class TeamService {
             }
         }
 
-        TeamPlayer teamPlayer = new TeamPlayer(player.getId(), player.getPos(), signPlayer.getSal());
+        TeamPlayer teamPlayer = new TeamPlayer(player.getUuid(), player.getPos(), signPlayer.getSal());
         teamPlayer.setNextTradeableDate(DateTool.getNDaysAfter(TRADE_LIMIT_DAYS));
         team.getPlayers().add(teamPlayer);
         team.setMoney(team.getMoney() - signPlayer.getSal());
@@ -133,8 +133,8 @@ public class TeamService {
     }
 
     @Transactional
-    public NetMessage breakPlayer(Long userId, Player player) throws Exception {
-        Player breakPlayer = playerRepository.findOne(player.getId());
+    public NetMessage breakPlayer(Long userId, Player player) {
+        Player breakPlayer = playerRepository.findOne(player.getUuid());
 
         if (DateTool.getHour() < DAY_TRADE_TIME) {
             return new NetMessage(NetMessage.STATUS_INVALID_OPERATION, NetMessage.DANGER, null);
@@ -152,7 +152,7 @@ public class TeamService {
             return new NetMessage(NetMessage.STATUS_INVALID_OPERATION, NetMessage.DANGER, null);
         } else {
             for (int i = 0; i < players.size(); i++) {
-                if (players.get(i).getPlayerId().longValue() == player.getId().longValue()) {
+                if (players.get(i).getUuid().equals(player.getUuid())) {
 
                     if (DateTool.isBefore(DateTool.getCurrentString(), players.get(i).getNextTradeableDate())) {
                         return new NetMessage(NetMessage.STATUS_TRADE_STILL_LIMIT, NetMessage.DANGER, null);
@@ -181,9 +181,9 @@ public class TeamService {
     }
 
     @Transactional
-    public NetMessage changePlayerPos(Long userId, Player player) throws Exception {
+    public NetMessage changePlayerPos(Long userId, Player player) {
 
-        Player sign = playerRepository.findOne(player.getId());
+        Player sign = playerRepository.findOne(player.getUuid());
 
         if (sign == null) {
             return new NetMessage(NetMessage.STATUS_PLAYER_NOT_EXIST, NetMessage.DANGER, null);
@@ -202,9 +202,9 @@ public class TeamService {
         if (players == null || players.size() == 0) {
             return new NetMessage(NetMessage.STATUS_INVALID_OPERATION, NetMessage.DANGER, null);
         } else {
-            for (int i = 0; i < players.size(); i++) {
-                if (players.get(i).getPlayerId().longValue() == player.getId().longValue()) {
-                    players.get(i).setPos(player.getPos());
+            for (TeamPlayer player1 : players) {
+                if (player1.getUuid().equals(player.getUuid())) {
+                    player1.setPos(player.getPos());
                     break;
                 }
             }
@@ -224,37 +224,41 @@ public class TeamService {
     /**
      * check ros must match[c:1,f:2,g:2]
      *
-     * @param team
-     * @param sign
-     * @return
+     * @param team user's team
+     * @param sign player to sign
+     * @return if error return message
      */
-    public String rosCheck(Team team, Player sign) {
+    private String rosCheck(Team team, Player sign) {
         List<TeamPlayer> players = team.getPlayers();
 
-        String ros = "";
+        StringBuilder ros = new StringBuilder();
 
         for (TeamPlayer p : players) {
-            ros += p.getPos();
+            ros.append(p.getPos());
         }
 
-        if (sign.getPos().equals("中锋")) {
-            if (posCount("\u4e2d\u950b", ros) >= 1) {
-                return NetMessage.STATUS_C_FULL;
-            }
-        } else if (sign.getPos().equals("前锋")) {
-            if (posCount("\u524d\u950b", ros) >= 2) {
-                return NetMessage.STATUS_F_FULL;
-            }
-        } else if (sign.getPos().equals("后卫")) {
-            if (posCount("\u540e\u536b", ros) >= 2) {
-                return NetMessage.STATUS_G_FULL;
-            }
+        switch (sign.getPos()) {
+            case "中锋":
+                if (posCount("\u4e2d\u950b", ros.toString()) >= 1) {
+                    return NetMessage.STATUS_C_FULL;
+                }
+                break;
+            case "前锋":
+                if (posCount("\u524d\u950b", ros.toString()) >= 2) {
+                    return NetMessage.STATUS_F_FULL;
+                }
+                break;
+            case "后卫":
+                if (posCount("\u540e\u536b", ros.toString()) >= 2) {
+                    return NetMessage.STATUS_G_FULL;
+                }
+                break;
         }
 
         return null;
     }
 
-    public static int posCount(String pos, String ros) {
+    private static int posCount(String pos, String ros) {
         int count = 0;
         Matcher matcher = Pattern.compile(pos).matcher(ros);
         while (matcher.find()) {
@@ -265,8 +269,6 @@ public class TeamService {
 
     @Resource
     private TeamRepository teamRepository;
-    @Resource
-    private TeamPlayerRepository teamPlayerRepository;
     @Resource
     private PlayerRepository playerRepository;
     @Resource

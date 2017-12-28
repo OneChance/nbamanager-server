@@ -11,12 +11,12 @@ import com.zhstar.nbamanager.statistic.entity.Statistic;
 @Component
 public class StatisticService {
 
-    public Statistic findToday(Long playerId, String gameDate) {
-        return statisticRepository.findByPlayerIdAndGameDate(playerId, gameDate);
+    public Statistic findToday(String playerId, String gameDate) {
+        return statisticRepository.findByUuidAndGameDate(playerId, gameDate);
     }
 
-    public List<Statistic> findLatest(Long playerId) {
-        return statisticRepository.findTop7ByPlayerIdOrderByGameDateDesc(playerId);
+    public List<Statistic> findLatest(String playerId) {
+        return statisticRepository.findTop7ByUuidOrderByGameDateDesc(playerId);
     }
 
     public List<Player> getEvRankToday() {

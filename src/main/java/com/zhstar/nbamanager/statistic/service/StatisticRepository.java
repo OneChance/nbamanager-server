@@ -10,11 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.zhstar.nbamanager.statistic.entity.Statistic;
 
-public interface StatisticRepository extends JpaRepository<Statistic, Long> {
+public interface StatisticRepository extends JpaRepository<Statistic, String> {
 
-    Statistic findByPlayerIdAndGameDate(Long playerId, String gameDate);
+    Statistic findByUuidAndGameDate(String playerId, String gameDate);
 
-    List<Statistic> findTop7ByPlayerIdOrderByGameDateDesc(Long playerId);
+    List<Statistic> findTop7ByUuidOrderByGameDateDesc(String playerId);
 
 
     @Modifying
